@@ -2,23 +2,18 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using QuizWhiz.Application.Interfaces;
 using QuizWhiz.Application.Services;
-using QuizWhiz.Domain.Interfaces;
-using QuizWhiz.Infrastructure.Data;
-using QuizWhiz.Infrastructure.Repositories;
+using QuizWhiz.DataAccess.Interfaces;
+using QuizWhiz.DataAccess.Data;
+using QuizWhiz.DataAccess.Repositories;
 using Microsoft.AspNetCore.Hosting.Server;
 using QuizWhiz.Domain.Helpers;
+using QuizWhiz.Application.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IAuthRepository, AuthRepository>();
-builder.Services.AddScoped<IUserServices, UserServices>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 // Add services to the container.
 
-builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -41,11 +36,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseNpgsql(builder.Configuration.GetConnectionString("defaultString")));
 
-
-
-builder.Services.AddScoped<QuizWhiz.Domain.Helpers.HashingHelper>();
-builder.Services.AddScoped<QuizWhiz.Domain.Helpers.JwtHelper>();
-builder.Services.AddScoped<QuizWhiz.Domain.Helpers.EmailSenderHelper>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<HashingHelper>();
+builder.Services.AddScoped<JwtHelper>();
+builder.Services.AddScoped<EmailSenderHelper>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 builder.Services.AddCors(options =>
 {
@@ -66,8 +61,6 @@ builder.Services.AddControllers()
 
 
 builder.Services.AddAuthorization();
-
-builder.Services.AddControllers();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Diagnostics;
@@ -27,16 +28,17 @@ namespace QuizWhiz.Domain.Helpers
             _logger.LogError(
                 exception, "Exception occurred: {Message}", exception.Message);
 
-            var problemDetails = new ProblemDetails
+            var response = new ResponseHelper
             {
-                Status = StatusCodes.Status500InternalServerError,
-                Title = "Server error"
+                IsSuccess = false,
+                StatusCode = HttpStatusCode.InternalServerError,
+                Message = exception.Message
             };
 
-            httpContext.Response.StatusCode = problemDetails.Status.Value;
+            httpContext.Response.StatusCode = 500;
 
             await httpContext.Response
-                .WriteAsJsonAsync(problemDetails, cancellationToken);
+                .WriteAsJsonAsync(response, cancellationToken);
 
             return true;
         }

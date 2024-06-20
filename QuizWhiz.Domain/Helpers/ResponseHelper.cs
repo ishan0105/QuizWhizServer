@@ -3,15 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace QuizWhiz.Application.DTOs.Response
+namespace QuizWhiz.Domain.Helpers
 {
-    public class ResponseDTO : ActionResult
+    public class ResponseHelper
     {
         [JsonPropertyName("isSuccess")]
         public bool IsSuccess { get; set; }
@@ -27,20 +25,5 @@ namespace QuizWhiz.Application.DTOs.Response
 
         [JsonPropertyName("errorMessage")]
         public List<string> ErrorMessages { get; set; } = new List<string>();
-
-        public override void ExecuteResult(ActionContext context)
-        {
-            var res = context.HttpContext.Response;
-            res.ContentType = "application/json";
-            res.StatusCode = (int)StatusCode;
-            res.WriteAsync(JsonSerializer.Serialize(new
-            {
-                isSuccess = IsSuccess,
-                data = Data,
-                message = Message,
-                statusCode = StatusCode,
-                errorMessages = ErrorMessages
-            }));
-        }
     }
 }
