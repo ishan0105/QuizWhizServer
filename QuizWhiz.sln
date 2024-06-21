@@ -14,7 +14,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuizWhiz.Application", "Qui
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuizWhiz.Domain", "QuizWhiz.Domain\QuizWhiz.Domain.csproj", "{4EA5ABCD-803C-43AF-BE7F-6A9952C4DE0E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuizWhiz.DataAccess", "QuizWhiz.DataAccess\QuizWhiz.DataAccess.csproj", "{12107E14-3B00-4EDB-892D-2E786235FF9F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuizWhiz.DataAccess", "QuizWhiz.DataAccess\QuizWhiz.DataAccess.csproj", "{12107E14-3B00-4EDB-892D-2E786235FF9F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

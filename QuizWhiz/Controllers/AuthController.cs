@@ -158,5 +158,43 @@ namespace QuizWhiz.API.Controllers
             }
             return await _authService.ResetPasswordAsync(resetPasswordDTO);
         }
+
+        [HttpGet("get-profile-details")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(500)]
+        public async Task<ResponseDTO> GetProfileDetails([FromQuery] string username)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Something Went Wrong",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+            return await _authService.GetProfileDetailsAsync(username);
+        }
+
+        [HttpPost("edit-profile")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(500)]
+        public async Task<ResponseDTO> EditProfile([FromBody] ProfileDetailsDTO profileDetailsDTO)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Something Went Wrong",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+            return await _authService.SetProfileDetailsAsync(profileDetailsDTO);
+        }
     }
 }

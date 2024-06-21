@@ -64,6 +64,8 @@ namespace QuizWhiz.Domain.Entities
         [Required]
         public bool IsDeleted { get; set; } = false;
 
+        public string ProfileImageURL { get; set; } = string.Empty;
+
         // Foreign key
         [ForeignKey("RoleId")]
         public int RoleId { get; set; } = 2;

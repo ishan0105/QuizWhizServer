@@ -36,20 +36,20 @@ namespace QuizWhiz.Application.Services
 
             if (user == null || !_hashingHelper.VerifyPassword(loginUserDTO.Password, user.PasswordHash))
             {
-                return new()
+                return new ResponseDTO()
                 {
                     IsSuccess = false,
-                    Message = "User not found",
+                    Message = "Invalid Email or Password!!",
                     StatusCode = HttpStatusCode.BadRequest
                 };
             }
 
             var role = await _unitOfWork.UserRoleRepository.GetFirstOrDefaultAsync(u => u.RoleId == user.RoleId);
 
-            return new()
+            return new ResponseDTO()
             {
                 IsSuccess = true,
-                Message = "User does exists.",
+                Message = "Logged In Successfully!!",
                 Data = _jwtHelper.GenerateJwtToken(user.Email, role.RoleName, user.Username),
                 StatusCode = HttpStatusCode.OK
             };
@@ -158,7 +158,7 @@ namespace QuizWhiz.Application.Services
             await _unitOfWork.SaveAsync();
 
             var clientUrl = "http://localhost:5173";
-            var resetLink = $"{clientUrl}/reset-password?token={token}";
+            var resetLink = $"{clientUrl}/reset-password/{token}";
             var subject = "Reset Password";
             var body = $"Click here to reset your password: {resetLink}";
             var isSent = _emailSenderHelper.SendEmail(user.Email, subject, body);
@@ -246,6 +246,65 @@ namespace QuizWhiz.Application.Services
                 Message = "User updated successfully.",
                 StatusCode = HttpStatusCode.OK
             };
-        }   
+        }
+
+        public async Task<ResponseDTO> GetProfileDetailsAsync(string username)
+        {
+            var user = await _unitOfWork.UserRepository.GetFirstOrDefaultAsync(u => u.Username == username);
+            if (user == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "User does not Exists!!",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+
+            ProfileDetailsDTO profileDetailsDTO = new()
+            {
+                Username = user.Username,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                PhoneNumber = user.PhoneNumber,
+                Country = user.Country,
+            };
+
+            return new()
+            {
+                IsSuccess = true,
+                Data = profileDetailsDTO,
+                StatusCode = HttpStatusCode.OK
+            };
+        }
+
+        public async Task<ResponseDTO> SetProfileDetailsAsync(ProfileDetailsDTO profileDetailsDTO)
+        {
+            var user = await _unitOfWork.UserRepository.GetFirstOrDefaultAsync(u => u.Username == profileDetailsDTO.Username);
+            if (user == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "User does not Exists!!",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+
+            user.FirstName = profileDetailsDTO.FirstName;
+            user.LastName = profileDetailsDTO.LastName;
+            user.PhoneNumber = profileDetailsDTO.PhoneNumber;
+            user.Country = profileDetailsDTO.Country;
+            user.ModifiedDate = DateTime.Now;
+            await _unitOfWork.SaveAsync();
+
+            return new()
+            {
+                IsSuccess = true,
+                Message = "User updated successfully.",
+                StatusCode = HttpStatusCode.OK
+            };
+        }
     }
 }

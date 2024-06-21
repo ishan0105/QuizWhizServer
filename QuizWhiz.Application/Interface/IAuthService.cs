@@ -24,5 +24,9 @@ namespace QuizWhiz.Application.Interfaces
         public Task<ResponseDTO> ValidateResetTokenAsync(string token);
 
         public Task<ResponseDTO> SendPasswordResetLinkAsync(ForgotPasswordDTO forgotPasswordDTO);
+
+        public Task<ResponseDTO> GetProfileDetailsAsync(string username);
+
+        public Task<ResponseDTO> SetProfileDetailsAsync(ProfileDetailsDTO profileDetailsDTO);
     }
 }
