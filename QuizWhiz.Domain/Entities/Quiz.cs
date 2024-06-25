@@ -22,8 +22,10 @@ namespace QuizWhiz.Domain.Entities
         [Required]
         [ForeignKey("CategoryId")]
         public required int CategoryId { get; set; }
-       
-        public int? ScheduleId { get; set; }
+
+        [Required]
+        [ForeignKey("ScheduleId")]
+        public required int ScheduleId { get; set; }
 
         [Required]
         public required int TotalQuestion { get; set; }
@@ -41,12 +43,14 @@ namespace QuizWhiz.Domain.Entities
         public required int MinMarks { get; set; }
 
         [Required]
-        public required string QuizStatus { get; set; }
+        [ForeignKey("StatusId")]
+        public required int StatusId { get; set; }
 
-        public int? WinningAmount { get; set; }
+        public int? WinningAmount { get; set; } = 0;
 
         [Required]
-        public required string Difficulty { get; set; }
+        [ForeignKey("DifficultyId")]
+        public required int DifficultyId { get; set; }
 
         [Required]
         public bool IsDeleted { get; set; } = false;
@@ -72,9 +76,14 @@ namespace QuizWhiz.Domain.Entities
 
         public QuizCategory Category { get; set; }
 
+        public QuizSchedule Schedule { get; set; }
+
+        public QuizDifficulty Difficulty { get; set; }
+
+        public QuizStatus Status { get; set; }
+
         [ForeignKey(nameof(CreatedBy))]
         public User CreatedByUser { get; set; }
-
 
         [ForeignKey(nameof(ModifiedBy))]
         public User ModifiedByUser { get; set; }

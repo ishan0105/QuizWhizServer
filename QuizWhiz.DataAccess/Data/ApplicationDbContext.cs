@@ -17,5 +17,21 @@ namespace QuizWhiz.DataAccess.Data
         public DbSet<User> Users { get; set; }
 
         public DbSet<UserRole> UserRoles { get; set; }
+
+        public DbSet<Quiz> Quizzes { get; set; }
+
+        public DbSet<QuizCategory> QuizCategories { get; set; }
+
+        public DbSet<Question> Questions { get; set; }
+
+        public DbSet<Answer> Answers { get; set; }
+
+        public DbSet<QuestionType> QuestionTypes { get; set; }
+
+        public DbSet<QuizSchedule> QuizSchedules { get; set; }
+
+        public DbSet<QuizDifficulty> QuizDifficulties { get; set; }
+
+        public DbSet<QuizStatus> QuizStatuses { get; set; }
     }
 }

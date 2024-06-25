@@ -12,6 +12,9 @@ using QuizWhiz.DataAccess.Interfaces;
 using Newtonsoft.Json.Linq;
 using QuizWhiz.Application.DTOs.Response;
 using System.Net;
+using Microsoft.Extensions.Configuration;
+using System.Transactions;
+using Microsoft.AspNetCore.Http;
 
 namespace QuizWhiz.Application.Services
 {
@@ -21,18 +24,32 @@ namespace QuizWhiz.Application.Services
         private readonly HashingHelper _hashingHelper;
         private readonly EmailSenderHelper _emailSenderHelper;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IConfiguration _configuration;
 
-        public AuthService(IUnitOfWork unitOfWork, JwtHelper jwtHelper, HashingHelper hashingHelper, EmailSenderHelper emailSenderHelper)
+        public AuthService(IUnitOfWork unitOfWork, JwtHelper jwtHelper, HashingHelper hashingHelper, EmailSenderHelper emailSenderHelper, IConfiguration configuration)
         {
             _jwtHelper = jwtHelper;
             _hashingHelper = hashingHelper;
             _emailSenderHelper = emailSenderHelper;
             _unitOfWork = unitOfWork;
+            _configuration = configuration;
         }
 
         public async Task<ResponseDTO> LoginUserAsync(LoginUserDTO loginUserDTO)
         {
-            var user = await _unitOfWork.UserRepository.GetFirstOrDefaultAsync(u => u.Email == loginUserDTO.Email && u.RoleId == 2);
+            var user = (from u in _unitOfWork.UserRepository.GetTable()
+                        join ur in _unitOfWork.UserRoleRepository.GetTable()
+                        on u.RoleId equals ur.RoleId
+                        where u.Email == loginUserDTO.Email && u.RoleId == 2
+                        select new
+                        {
+                            u.UserId,
+                            u.Username,
+                            u.Email,
+                            u.PasswordHash,
+                            ur.RoleId,
+                            ur.RoleName,
+                        }).FirstOrDefault();
 
             if (user == null || !_hashingHelper.VerifyPassword(loginUserDTO.Password, user.PasswordHash))
             {
@@ -44,20 +61,31 @@ namespace QuizWhiz.Application.Services
                 };
             }
 
-            var role = await _unitOfWork.UserRoleRepository.GetFirstOrDefaultAsync(u => u.RoleId == user.RoleId);
-
             return new ResponseDTO()
             {
                 IsSuccess = true,
                 Message = "Logged In Successfully!!",
-                Data = _jwtHelper.GenerateJwtToken(user.Email, role.RoleName, user.Username),
+                Data = _jwtHelper.GenerateJwtToken(user.Email, user.RoleName, user.Username),
                 StatusCode = HttpStatusCode.OK
             };
+            
         }
 
         public async Task<ResponseDTO> LoginAdminAsync(LoginUserDTO loginUserDTO)
         {
-            var admin = await _unitOfWork.UserRepository.GetFirstOrDefaultAsync(u => u.Email == loginUserDTO.Email && u.RoleId == 1);
+            var admin = (from u in _unitOfWork.UserRepository.GetTable()
+                         join ur in _unitOfWork.UserRoleRepository.GetTable()
+                         on u.RoleId equals ur.RoleId
+                         where u.Email == loginUserDTO.Email && u.RoleId == 1
+                         select new
+                         {
+                             u.UserId,
+                             u.Username,
+                             u.Email,
+                             u.PasswordHash,
+                             ur.RoleId,
+                             ur.RoleName,
+                         }).FirstOrDefault();
 
             if (admin == null || !_hashingHelper.VerifyPassword(loginUserDTO.Password, admin.PasswordHash))
             {
@@ -69,13 +97,11 @@ namespace QuizWhiz.Application.Services
                 };
             }
 
-            var role = await _unitOfWork.UserRoleRepository.GetFirstOrDefaultAsync(u => u.RoleId == admin.RoleId);
-
             return new()
             {
                 IsSuccess = true,
-                Message = "Admin does exists.",
-                Data = _jwtHelper.GenerateJwtToken(admin.Email, role.RoleName, admin.Username),
+                Message = "Admin Logged In Successfully!!",
+                Data = _jwtHelper.GenerateJwtToken(admin.Email, admin.RoleName, admin.Username),
                 StatusCode = HttpStatusCode.OK
             };
         }
@@ -303,6 +329,18 @@ namespace QuizWhiz.Application.Services
             {
                 IsSuccess = true,
                 Message = "User updated successfully.",
+                StatusCode = HttpStatusCode.OK
+            };
+        }
+
+        public async Task<ResponseDTO> SetRecordSizeAsync(int recordSize)
+        {
+            _configuration["Records:Size"] = recordSize.ToString();
+            return new()
+            {
+                IsSuccess = true,
+                Data = _configuration["Records:Size"],
+                Message = "Record Size Changed",
                 StatusCode = HttpStatusCode.OK
             };
         }

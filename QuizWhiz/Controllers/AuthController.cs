@@ -11,6 +11,8 @@ using System.Net;
 using QuizWhiz.Application.Services;
 using QuizWhiz.DataAccess.Data;
 using QuizWhiz.Application.Interfaces;
+using QuizWhiz.Domain.Helpers;
+using Microsoft.AspNetCore.Authorization;
 
 namespace QuizWhiz.API.Controllers
 {
@@ -124,7 +126,6 @@ namespace QuizWhiz.API.Controllers
         [HttpGet("validate-reset-password-token")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
-        [ProducesResponseType(401)]
         [ProducesResponseType(500)]
         public async Task<ResponseDTO> ValidateResetPasswordToken([FromQuery] string token)
         {
@@ -143,7 +144,6 @@ namespace QuizWhiz.API.Controllers
         [HttpPost("reset-password")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
-        [ProducesResponseType(401)]
         [ProducesResponseType(500)]
         public async Task<ResponseDTO> ResetPassword([FromBody] ResetPasswordDTO resetPasswordDTO)
         {
@@ -162,7 +162,6 @@ namespace QuizWhiz.API.Controllers
         [HttpGet("get-profile-details")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
-        [ProducesResponseType(401)]
         [ProducesResponseType(500)]
         public async Task<ResponseDTO> GetProfileDetails([FromQuery] string username)
         {
@@ -181,7 +180,6 @@ namespace QuizWhiz.API.Controllers
         [HttpPost("edit-profile")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
-        [ProducesResponseType(401)]
         [ProducesResponseType(500)]
         public async Task<ResponseDTO> EditProfile([FromBody] ProfileDetailsDTO profileDetailsDTO)
         {
@@ -195,6 +193,25 @@ namespace QuizWhiz.API.Controllers
                 };
             }
             return await _authService.SetProfileDetailsAsync(profileDetailsDTO);
+        }
+      
+        [HttpGet("change-record-size")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        public async Task<ResponseDTO> RecordSizeChange(int recordSize)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Something Went Wrong",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+
+            return await _authService.SetRecordSizeAsync(recordSize);
         }
     }
 }

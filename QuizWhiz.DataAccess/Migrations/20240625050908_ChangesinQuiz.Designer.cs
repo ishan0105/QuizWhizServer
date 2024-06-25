@@ -9,11 +9,11 @@ using QuizWhiz.DataAccess.Data;
 
 #nullable disable
 
-namespace QuizWhiz.DataAccess.Data.Migrations
+namespace QuizWhiz.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240618120800_fktocreatedbyinquizupdated")]
-    partial class fktocreatedbyinquizupdated
+    [Migration("20240625050908_ChangesinQuiz")]
+    partial class ChangesinQuiz
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,7 +25,7 @@ namespace QuizWhiz.DataAccess.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("server.DataLayer.Models.Answer", b =>
+            modelBuilder.Entity("QuizWhiz.Domain.Entities.Answer", b =>
                 {
                     b.Property<int>("AnswerId")
                         .ValueGeneratedOnAdd()
@@ -47,13 +47,16 @@ namespace QuizWhiz.DataAccess.Data.Migrations
                     b.ToTable("Answers");
                 });
 
-            modelBuilder.Entity("server.DataLayer.Models.Question", b =>
+            modelBuilder.Entity("QuizWhiz.Domain.Entities.Question", b =>
                 {
                     b.Property<int>("QuestionId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("QuestionId"));
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<int>("Mark")
                         .HasColumnType("integer");
@@ -93,7 +96,7 @@ namespace QuizWhiz.DataAccess.Data.Migrations
                     b.ToTable("Questions");
                 });
 
-            modelBuilder.Entity("server.DataLayer.Models.QuestionType", b =>
+            modelBuilder.Entity("QuizWhiz.Domain.Entities.QuestionType", b =>
                 {
                     b.Property<int>("QuestionTypeId")
                         .ValueGeneratedOnAdd()
@@ -110,7 +113,7 @@ namespace QuizWhiz.DataAccess.Data.Migrations
                     b.ToTable("QuestionTypes");
                 });
 
-            modelBuilder.Entity("server.DataLayer.Models.Quiz", b =>
+            modelBuilder.Entity("QuizWhiz.Domain.Entities.Quiz", b =>
                 {
                     b.Property<int>("QuizId")
                         .ValueGeneratedOnAdd()
@@ -124,9 +127,6 @@ namespace QuizWhiz.DataAccess.Data.Migrations
                     b.Property<int>("CreatedBy")
                         .HasColumnType("integer");
 
-                    b.Property<int>("CreatedByUserUserId")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp without time zone");
 
@@ -134,9 +134,8 @@ namespace QuizWhiz.DataAccess.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Difficulty")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("DifficultyId")
+                        .HasColumnType("integer");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
@@ -153,9 +152,6 @@ namespace QuizWhiz.DataAccess.Data.Migrations
                     b.Property<int?>("ModifiedBy")
                         .HasColumnType("integer");
 
-                    b.Property<int>("ModifiedByUserUserId")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime?>("ModifiedDate")
                         .HasColumnType("timestamp without time zone");
 
@@ -166,11 +162,10 @@ namespace QuizWhiz.DataAccess.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("QuizStatus")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("ScheduleId")
+                        .HasColumnType("integer");
 
-                    b.Property<int?>("ScheduleId")
+                    b.Property<int>("StatusId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Title")
@@ -190,14 +185,20 @@ namespace QuizWhiz.DataAccess.Data.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.HasIndex("CreatedByUserUserId");
+                    b.HasIndex("CreatedBy");
 
-                    b.HasIndex("ModifiedByUserUserId");
+                    b.HasIndex("DifficultyId");
+
+                    b.HasIndex("ModifiedBy");
+
+                    b.HasIndex("ScheduleId");
+
+                    b.HasIndex("StatusId");
 
                     b.ToTable("Quizzes");
                 });
 
-            modelBuilder.Entity("server.DataLayer.Models.QuizCategory", b =>
+            modelBuilder.Entity("QuizWhiz.Domain.Entities.QuizCategory", b =>
                 {
                     b.Property<int>("CategoryId")
                         .ValueGeneratedOnAdd()
@@ -214,7 +215,63 @@ namespace QuizWhiz.DataAccess.Data.Migrations
                     b.ToTable("QuizCategories");
                 });
 
-            modelBuilder.Entity("server.DataLayer.Models.User", b =>
+            modelBuilder.Entity("QuizWhiz.Domain.Entities.QuizDifficulty", b =>
+                {
+                    b.Property<int>("DifficultyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("DifficultyId"));
+
+                    b.Property<string>("DifficultyName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("DifficultyId");
+
+                    b.ToTable("QuizDifficulties");
+                });
+
+            modelBuilder.Entity("QuizWhiz.Domain.Entities.QuizSchedule", b =>
+                {
+                    b.Property<int>("ScheduleId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ScheduleId"));
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<DateTime>("ScheduledDate")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.HasKey("ScheduleId");
+
+                    b.ToTable("QuizSchedules");
+                });
+
+            modelBuilder.Entity("QuizWhiz.Domain.Entities.QuizStatus", b =>
+                {
+                    b.Property<int>("StatusId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("StatusId"));
+
+                    b.Property<string>("StatusName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("StatusId");
+
+                    b.ToTable("QuizStatuses");
+                });
+
+            modelBuilder.Entity("QuizWhiz.Domain.Entities.User", b =>
                 {
                     b.Property<int>("UserId")
                         .ValueGeneratedOnAdd()
@@ -268,6 +325,10 @@ namespace QuizWhiz.DataAccess.Data.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<string>("ProfileImageURL")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("ResetToken")
                         .IsRequired()
                         .HasColumnType("text");
@@ -295,7 +356,7 @@ namespace QuizWhiz.DataAccess.Data.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("server.DataLayer.Models.UserRole", b =>
+            modelBuilder.Entity("QuizWhiz.Domain.Entities.UserRole", b =>
                 {
                     b.Property<int>("RoleId")
                         .ValueGeneratedOnAdd()
@@ -313,9 +374,9 @@ namespace QuizWhiz.DataAccess.Data.Migrations
                     b.ToTable("UserRoles");
                 });
 
-            modelBuilder.Entity("server.DataLayer.Models.Answer", b =>
+            modelBuilder.Entity("QuizWhiz.Domain.Entities.Answer", b =>
                 {
-                    b.HasOne("server.DataLayer.Models.Question", "Question")
+                    b.HasOne("QuizWhiz.Domain.Entities.Question", "Question")
                         .WithMany()
                         .HasForeignKey("QuestionId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -324,15 +385,15 @@ namespace QuizWhiz.DataAccess.Data.Migrations
                     b.Navigation("Question");
                 });
 
-            modelBuilder.Entity("server.DataLayer.Models.Question", b =>
+            modelBuilder.Entity("QuizWhiz.Domain.Entities.Question", b =>
                 {
-                    b.HasOne("server.DataLayer.Models.QuestionType", "QuestionType")
+                    b.HasOne("QuizWhiz.Domain.Entities.QuestionType", "QuestionType")
                         .WithMany()
                         .HasForeignKey("QuestionTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("server.DataLayer.Models.Quiz", "Quiz")
+                    b.HasOne("QuizWhiz.Domain.Entities.Quiz", "Quiz")
                         .WithMany()
                         .HasForeignKey("QuizId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -343,23 +404,39 @@ namespace QuizWhiz.DataAccess.Data.Migrations
                     b.Navigation("Quiz");
                 });
 
-            modelBuilder.Entity("server.DataLayer.Models.Quiz", b =>
+            modelBuilder.Entity("QuizWhiz.Domain.Entities.Quiz", b =>
                 {
-                    b.HasOne("server.DataLayer.Models.QuizCategory", "Category")
+                    b.HasOne("QuizWhiz.Domain.Entities.QuizCategory", "Category")
                         .WithMany()
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("server.DataLayer.Models.User", "CreatedByUser")
+                    b.HasOne("QuizWhiz.Domain.Entities.User", "CreatedByUser")
                         .WithMany()
-                        .HasForeignKey("CreatedByUserUserId")
+                        .HasForeignKey("CreatedBy")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("server.DataLayer.Models.User", "ModifiedByUser")
+                    b.HasOne("QuizWhiz.Domain.Entities.QuizDifficulty", "Difficulty")
                         .WithMany()
-                        .HasForeignKey("ModifiedByUserUserId")
+                        .HasForeignKey("DifficultyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("QuizWhiz.Domain.Entities.User", "ModifiedByUser")
+                        .WithMany()
+                        .HasForeignKey("ModifiedBy");
+
+                    b.HasOne("QuizWhiz.Domain.Entities.QuizSchedule", "Schedule")
+                        .WithMany()
+                        .HasForeignKey("ScheduleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("QuizWhiz.Domain.Entities.QuizStatus", "Status")
+                        .WithMany()
+                        .HasForeignKey("StatusId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -367,12 +444,18 @@ namespace QuizWhiz.DataAccess.Data.Migrations
 
                     b.Navigation("CreatedByUser");
 
+                    b.Navigation("Difficulty");
+
                     b.Navigation("ModifiedByUser");
+
+                    b.Navigation("Schedule");
+
+                    b.Navigation("Status");
                 });
 
-            modelBuilder.Entity("server.DataLayer.Models.User", b =>
+            modelBuilder.Entity("QuizWhiz.Domain.Entities.User", b =>
                 {
-                    b.HasOne("server.DataLayer.Models.UserRole", "Role")
+                    b.HasOne("QuizWhiz.Domain.Entities.UserRole", "Role")
                         .WithMany("Users")
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -381,7 +464,7 @@ namespace QuizWhiz.DataAccess.Data.Migrations
                     b.Navigation("Role");
                 });
 
-            modelBuilder.Entity("server.DataLayer.Models.UserRole", b =>
+            modelBuilder.Entity("QuizWhiz.Domain.Entities.UserRole", b =>
                 {
                     b.Navigation("Users");
                 });

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using QuizWhiz.Domain.Helpers;
@@ -13,14 +14,15 @@ namespace QuizWhiz.Domain.Helpers
     public class CustomAuthorize : AuthorizeAttribute, IAuthorizationFilter
     {
         private readonly string _role;
-      
+        
+
         public CustomAuthorize(string role)
         {
             _role = role;
         }
 
         public void OnAuthorization(AuthorizationFilterContext context)
-        {
+        {   
             var token = context.HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last();
             if (!IsTokenValid(token, out var claimsPrincipal))
             {
@@ -31,8 +33,8 @@ namespace QuizWhiz.Domain.Helpers
             // Set the user principal for the current context
             context.HttpContext.User = claimsPrincipal;
 
-            var userRole = claimsPrincipal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
-            if (userRole == null || userRole != _role)
+            var userRole = claimsPrincipal.Claims.FirstOrDefault(c => c.Type == "Role")?.Value;
+            if (userRole == null || !_role.Contains(userRole))
             {
                 context.Result = new ForbidResult();
             }
@@ -44,7 +46,7 @@ namespace QuizWhiz.Domain.Helpers
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.ASCII.GetBytes("This Is My Secret Key For Authorization");
+                var key = Encoding.ASCII.GetBytes("nTB981AWJOmY44dpCDcCuwYO6nuXcFAk98B$7SutWNVEe+truifreDSGHJooierAEWdfgDSFd");
 
                 var validationParameters = new TokenValidationParameters
                 {
@@ -63,6 +65,5 @@ namespace QuizWhiz.Domain.Helpers
                 return false;
             }
         }
-
     }
 }

@@ -2,28 +2,28 @@
 
 #nullable disable
 
-namespace QuizWhiz.DataAccess.Data.Migrations
+namespace QuizWhiz.DataAccess.Migrations
 {
     /// <inheritdoc />
-    public partial class UserWithImageURL : Migration
+    public partial class IsDeletedAddedinQuestion : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
-                name: "ProfileImageURL",
-                table: "Users",
-                type: "text",
+            migrationBuilder.AddColumn<bool>(
+                name: "IsDeleted",
+                table: "Questions",
+                type: "boolean",
                 nullable: false,
-                defaultValue: "");
+                defaultValue: false);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "ProfileImageURL",
-                table: "Users");
+                name: "IsDeleted",
+                table: "Questions");
         }
     }
 }

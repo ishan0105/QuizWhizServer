@@ -4,10 +4,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace QuizWhiz.DataAccess.Data.Migrations
+namespace QuizWhiz.DataAccess.Migrations
 {
     /// <inheritdoc />
-    public partial class addTableQuizManagement : Migration
+    public partial class AllTablesAdded : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -39,6 +39,69 @@ namespace QuizWhiz.DataAccess.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "QuizSchedules",
+                columns: table => new
+                {
+                    ScheduleId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ScheduledDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    ModifiedDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_QuizSchedules", x => x.ScheduleId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserRoles",
+                columns: table => new
+                {
+                    RoleId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    RoleName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserRoles", x => x.RoleId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Users",
+                columns: table => new
+                {
+                    UserId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Username = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    PasswordHash = table.Column<string>(type: "text", nullable: false),
+                    Email = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    FirstName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    LastName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    PhoneNumber = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    Country = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Status = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    NameAbbreviation = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: false),
+                    IsNotificationEnabled = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    ModifiedDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    ResetToken = table.Column<string>(type: "text", nullable: false),
+                    ResetTokenExpiry = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
+                    ProfileImageURL = table.Column<string>(type: "text", nullable: false),
+                    RoleId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Users", x => x.UserId);
+                    table.ForeignKey(
+                        name: "FK_Users_UserRoles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "UserRoles",
+                        principalColumn: "RoleId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Quizzes",
                 columns: table => new
                 {
@@ -58,12 +121,11 @@ namespace QuizWhiz.DataAccess.Data.Migrations
                     Difficulty = table.Column<string>(type: "text", nullable: false),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedBy = table.Column<int>(type: "integer", nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     QuizLink = table.Column<string>(type: "text", nullable: false),
                     ModifiedBy = table.Column<int>(type: "integer", nullable: true),
-                    ModifiedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    IsPublished = table.Column<bool>(type: "boolean", nullable: false),
-                    UserId = table.Column<int>(type: "integer", nullable: false)
+                    ModifiedDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    IsPublished = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -75,11 +137,21 @@ namespace QuizWhiz.DataAccess.Data.Migrations
                         principalColumn: "CategoryId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Quizzes_Users_UserId",
-                        column: x => x.UserId,
+                        name: "FK_Quizzes_QuizSchedules_ScheduleId",
+                        column: x => x.ScheduleId,
+                        principalTable: "QuizSchedules",
+                        principalColumn: "ScheduleId");
+                    table.ForeignKey(
+                        name: "FK_Quizzes_Users_CreatedBy",
+                        column: x => x.CreatedBy,
                         principalTable: "Users",
                         principalColumn: "UserId",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Quizzes_Users_ModifiedBy",
+                        column: x => x.ModifiedBy,
+                        principalTable: "Users",
+                        principalColumn: "UserId");
                 });
 
             migrationBuilder.CreateTable(
@@ -155,9 +227,24 @@ namespace QuizWhiz.DataAccess.Data.Migrations
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Quizzes_UserId",
+                name: "IX_Quizzes_CreatedBy",
                 table: "Quizzes",
-                column: "UserId");
+                column: "CreatedBy");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Quizzes_ModifiedBy",
+                table: "Quizzes",
+                column: "ModifiedBy");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Quizzes_ScheduleId",
+                table: "Quizzes",
+                column: "ScheduleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_RoleId",
+                table: "Users",
+                column: "RoleId");
         }
 
         /// <inheritdoc />
@@ -177,6 +264,15 @@ namespace QuizWhiz.DataAccess.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "QuizCategories");
+
+            migrationBuilder.DropTable(
+                name: "QuizSchedules");
+
+            migrationBuilder.DropTable(
+                name: "Users");
+
+            migrationBuilder.DropTable(
+                name: "UserRoles");
         }
     }
 }

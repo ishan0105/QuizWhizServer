@@ -32,6 +32,9 @@ namespace QuizWhiz.Domain.Entities
         public string OptionD { get; set; } = string.Empty;
 
         [Required]
+        public bool IsDeleted { get; set; } = false;
+
+        [Required]
         public required int Mark { get; set; }
 
         public Quiz Quiz { get; set; }

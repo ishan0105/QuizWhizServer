@@ -2,10 +2,10 @@
 
 #nullable disable
 
-namespace QuizWhiz.DataAccess.Data.Migrations
+namespace QuizWhiz.DataAccess.Migrations
 {
     /// <inheritdoc />
-    public partial class changesindb : Migration
+    public partial class ScheduleModified : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
