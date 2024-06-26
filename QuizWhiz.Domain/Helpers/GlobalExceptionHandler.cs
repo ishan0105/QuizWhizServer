@@ -14,7 +14,6 @@ namespace QuizWhiz.Domain.Helpers
     public class GlobalExceptionHandler : IExceptionHandler
     {
         private readonly ILogger<GlobalExceptionHandler> _logger;
-
         public GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger)
         {
             _logger = logger;
@@ -27,19 +26,15 @@ namespace QuizWhiz.Domain.Helpers
         {
             _logger.LogError(
                 exception, "Exception occurred: {Message}", exception.Message);
-
             var response = new ResponseHelper
             {
                 IsSuccess = false,
                 StatusCode = HttpStatusCode.InternalServerError,
                 Message = exception.Message
             };
-
             httpContext.Response.StatusCode = 500;
-
             await httpContext.Response
                 .WriteAsJsonAsync(response, cancellationToken);
-
             return true;
         }
     }
