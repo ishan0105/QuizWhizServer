@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace QuizWhiz.Application.DTOs.Response
 {
-    public class TokenDTO
+    public class TokenDetails
     {
         public string? UserRole {  get; set; }
 

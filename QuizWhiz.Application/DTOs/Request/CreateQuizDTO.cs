@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace QuizWhiz.Application.DTOs.Request
 {
-    public class QuizDTO
+    public class CreateQuizDTO
     {
         [Required(ErrorMessage = "Title is required")]
         public required string Title { get; set; }

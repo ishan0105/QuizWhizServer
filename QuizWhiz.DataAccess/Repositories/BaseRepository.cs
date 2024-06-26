@@ -43,9 +43,15 @@ namespace QuizWhiz.DataAccess.Repositories
             return await _dbSet.AnyAsync(predicate);
         }
 
-        public List<T> GetAll()
+        public async Task<List<T>> GetAll()
         {
-            return _dbSet.ToList();
+            return await _dbSet.ToListAsync();
+        }
+
+        public async Task<List<T>> GetWhereAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await _dbSet.Where(predicate)
+                .ToListAsync();
         }
 
         public async Task CreateAsync(T entity)

@@ -10,6 +10,10 @@ namespace QuizWhiz.Application.Interface
 {
     public interface IQuizService
     {
-        public Task<ResponseDTO> CreateNewQuizAsync(QuizDTO quizDTO);
+        public Task<ResponseDTO> CreateNewQuizAsync(CreateQuizDTO quizDTO);
+
+        public Task<ResponseDTO> GetQuizzesFilterAsync(GetQuizFilterDTO getQuizFilterDTO);
+
+        public Task<ResponseDTO> AddQuizQuestionsAsync(QuizQuestionsDTO quizQuestionsDTO);
     }
 }

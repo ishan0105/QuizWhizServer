@@ -29,7 +29,7 @@ namespace QuizWhiz.API.Controllers
         [ProducesResponseType(400)]
         [ProducesResponseType(500)]
         [CustomAuthorize("Admin")]
-        public async Task<ResponseDTO> CreateNewQuiz([FromBody] QuizDTO quizDTO)
+        public async Task<ResponseDTO> CreateNewQuiz([FromBody] CreateQuizDTO quizDTO)
         {
             if (!ModelState.IsValid)
             {
@@ -42,6 +42,45 @@ namespace QuizWhiz.API.Controllers
             }
 
             return await _quizService.CreateNewQuizAsync(quizDTO);
+        }
+
+        [HttpPost("get-quizzes-filter")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        //[CustomAuthorize("Admin")]
+        public async Task<ResponseDTO> GetQuizzesFilter([FromBody] GetQuizFilterDTO getQuizFilterDTO)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Something Went Wrong",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+
+            return await _quizService.GetQuizzesFilterAsync(getQuizFilterDTO);
+        }
+
+        [HttpPost("add-quiz-questions")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        public async Task<ResponseDTO> AddQuizQuestions([FromBody] QuizQuestionsDTO quizQuestionsDTO)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Something Went Wrong",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+
+            return await _quizService.AddQuizQuestionsAsync(quizQuestionsDTO);
         }
     }
 }

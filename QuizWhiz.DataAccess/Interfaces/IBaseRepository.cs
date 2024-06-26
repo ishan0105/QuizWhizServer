@@ -10,9 +10,11 @@ namespace QuizWhiz.DataAccess.Interfaces
 
         public Task<bool> GetAnyAsync(Expression<Func<T, bool>> predicate);
 
-        public List<T> GetAll();
+        public Task<List<T>> GetAll();
 
         public IQueryable<T> GetTable();
+
+        public Task<List<T>> GetWhereAsync(Expression<Func<T, bool>> predicate);
 
         public Task CreateAsync(T entity);
     }

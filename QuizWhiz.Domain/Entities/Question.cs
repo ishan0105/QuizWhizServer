@@ -16,26 +16,24 @@ namespace QuizWhiz.Domain.Entities
         [Required]
         [ForeignKey("QuizId")]
         public required int QuizId { get; set; }
-      
 
         [Required]
         [ForeignKey("QuestionTypeId")]
         public required int QuestionTypeId { get; set; }
-       
 
         [Required]
         public required string QuestionText { get; set; }
 
         public string OptionA { get; set; } = string.Empty;
+
         public string OptionB { get; set; } = string.Empty;
+
         public string OptionC { get; set; } = string.Empty;
+
         public string OptionD { get; set; } = string.Empty;
 
         [Required]
         public bool IsDeleted { get; set; } = false;
-
-        [Required]
-        public required int Mark { get; set; }
 
         public Quiz Quiz { get; set; }
 

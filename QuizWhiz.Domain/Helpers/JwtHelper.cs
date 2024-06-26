@@ -50,7 +50,7 @@ namespace QuizWhiz.Domain.Helpers
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        public TokenDTO DecodeToken()
+        public TokenDetails DecodeToken()
         {
             var context = _httpContextAccessor.HttpContext;
             var token = context.Request.Headers["Authorization"].ToString().Split(" ").Last();
@@ -71,14 +71,14 @@ namespace QuizWhiz.Domain.Helpers
 
             if (userRole != null)
             {
-                TokenDTO tokenDTO = new()
+                TokenDetails tokenDetails = new()
                 {
                     Username = claimsPrincipal.Claims.FirstOrDefault(c => c.Type == "Username")?.Value,
                     UserRole = claimsPrincipal.Claims.FirstOrDefault(c => c.Type == "Role")?.Value,
                     Email = claimsPrincipal.Claims.FirstOrDefault(c => c.Type == "Email")?.Value,
                 };
 
-                return tokenDTO;
+                return tokenDetails;
             }
 
             return null;
