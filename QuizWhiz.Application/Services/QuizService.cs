@@ -18,6 +18,7 @@ using Newtonsoft.Json.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Filters;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using System.Buffers;
 
 namespace QuizWhiz.Application.Services
 {
@@ -126,6 +127,8 @@ namespace QuizWhiz.Application.Services
                         join s in _unitOfWork.QuizScheduleRepository.GetTable()
                         on q.ScheduleId equals s.ScheduleId
                         where q.IsDeleted == false
+                        && (getQuizFilterDTO.SearchValue == string.Empty || q.Title.ToLower().Contains(getQuizFilterDTO.SearchValue.ToLower())
+                        || q.Description.ToLower().Contains(getQuizFilterDTO.SearchValue.ToLower()))
                         && (getQuizFilterDTO.StatusId == 0 || q.StatusId == getQuizFilterDTO.StatusId)
                         && (getQuizFilterDTO.DifficultyId == 0 || q.DifficultyId == getQuizFilterDTO.DifficultyId)
                         && (getQuizFilterDTO.CategoryId == 0 || q.CategoryId == getQuizFilterDTO.CategoryId)
@@ -170,6 +173,16 @@ namespace QuizWhiz.Application.Services
             .Take(recordSize)
             .ToList();
 
+            if(totalCount == 0)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "No Quizzes Found!!",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+            
             PaginationDTO paginationDTO = new()
             {
                 TotalCount = totalCount,
