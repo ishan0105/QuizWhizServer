@@ -63,14 +63,14 @@ namespace QuizWhiz.Application.Services
                         break;
                     }
                 }
-            } while(!isLinkUnique);
+            } while (!isLinkUnique);
 
             var token = _jwtHelper.DecodeToken();
             var adminUsername = token.Username;
 
             var admin = (await _unitOfWork.UserRepository.GetFirstOrDefaultAsync(u => u.Username == adminUsername));
 
-            if(admin != null)
+            if (admin != null)
             {
                 QuizSchedule quizSchedule = new QuizSchedule()
                 {
@@ -123,23 +123,23 @@ namespace QuizWhiz.Application.Services
         public async Task<ResponseDTO> GetQuizzesFilterAsync(GetQuizFilterDTO getQuizFilterDTO)
         {
             var query = from q in _unitOfWork.QuizRepository.GetTable()
-                                    join s in _unitOfWork.QuizScheduleRepository.GetTable()
-                                    on q.ScheduleId equals s.ScheduleId
-                                    where q.IsDeleted == false 
-                                    && (getQuizFilterDTO.StatusId == 0 || q.StatusId == getQuizFilterDTO.StatusId)
-                                    && (getQuizFilterDTO.DifficultyId == 0 || q.DifficultyId == getQuizFilterDTO.DifficultyId) 
-                                    && (getQuizFilterDTO.CategoryId == 0 || q.CategoryId == getQuizFilterDTO.CategoryId)
-                                    orderby s.ScheduledDate ascending
-                                    select new
-                                    {
-                                        q.QuizId,
-                                        q.Title,
-                                        q.Description,
-                                        q.CategoryId,
-                                        q.DifficultyId,
-                                        s.ScheduledDate,
-                                        q.QuizLink,
-                                    };
+                        join s in _unitOfWork.QuizScheduleRepository.GetTable()
+                        on q.ScheduleId equals s.ScheduleId
+                        where q.IsDeleted == false
+                        && (getQuizFilterDTO.StatusId == 0 || q.StatusId == getQuizFilterDTO.StatusId)
+                        && (getQuizFilterDTO.DifficultyId == 0 || q.DifficultyId == getQuizFilterDTO.DifficultyId)
+                        && (getQuizFilterDTO.CategoryId == 0 || q.CategoryId == getQuizFilterDTO.CategoryId)
+                        orderby s.ScheduledDate ascending
+                        select new
+                        {
+                            q.QuizId,
+                            q.Title,
+                            q.Description,
+                            q.CategoryId,
+                            q.DifficultyId,
+                            s.ScheduledDate,
+                            q.QuizLink,
+                        };
 
             var quizzes = await query.ToListAsync().ConfigureAwait(false);
 
@@ -196,7 +196,7 @@ namespace QuizWhiz.Application.Services
 
         public async Task<ResponseDTO> AddQuizQuestionsAsync(QuizQuestionsDTO quizQuestionsDTO)
         {
-            foreach(var questionDTO in quizQuestionsDTO.QuestionDTOs)
+            foreach (var questionDTO in quizQuestionsDTO.QuestionDTOs)
             {
                 Question question = new()
                 {
@@ -235,6 +235,76 @@ namespace QuizWhiz.Application.Services
                 IsSuccess = true,
                 Message = "Questions Added Successfully!!",
                 StatusCode = HttpStatusCode.OK
+            };
+        }
+
+        public async Task<ResponseDTO> GetQuizStatusCountAsync()
+        {
+            int pendingCount = await _unitOfWork.QuizRepository.CountAsync(u => u.StatusId == 1);
+            int upcomingCount = await _unitOfWork.QuizRepository.CountAsync(u => u.StatusId == 2);
+            int activeCount = await _unitOfWork.QuizRepository.CountAsync(u => u.StatusId == 3);
+            int completedCount = await _unitOfWork.QuizRepository.CountAsync(u => u.StatusId == 4);
+
+            StatusCountDTO statusCountDTO = new()
+            {
+                PendingCount = pendingCount,
+                UpcomingCount = upcomingCount,
+                ActiveCount = activeCount,
+                CompletedCount = completedCount
+            };
+
+            return new()
+            {
+                IsSuccess = true,
+                Data = statusCountDTO,
+                StatusCode = HttpStatusCode.OK
+            };
+        }
+
+        public async Task<ResponseDTO> GetQuizDifficultiesAsync()
+        {
+            List<QuizDifficulty> quizDifficulties = await _unitOfWork.QuizDifficultyRepository.GetAll();
+
+            return new()
+            {
+                IsSuccess = true,
+                Data = quizDifficulties,
+                StatusCode = HttpStatusCode.OK
+            };
+        }
+
+        public async Task<ResponseDTO> GetQuizCategoriesAsync()
+        {
+            List<QuizCategory> quizCategories = await _unitOfWork.QuizCategoryRepository.GetAll();
+
+            return new()
+            {
+                IsSuccess = true,
+                Data = quizCategories,
+                StatusCode = HttpStatusCode.OK
+            };
+        }
+
+        public async Task<ResponseDTO> GetQuizDetailsAsync(string quizLink)
+        {
+            Quiz quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(u => u.QuizLink == quizLink);
+
+            if(quiz == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "QuizLink is Invalid!!",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            return new()
+            {
+                IsSuccess = true,
+                Message = "Quiz Details Fetched Successfully!!",
+                Data = quiz,
+                StatusCode = HttpStatusCode.OK,
             };
         }
     }

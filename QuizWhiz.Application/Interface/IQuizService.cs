@@ -15,5 +15,13 @@ namespace QuizWhiz.Application.Interface
         public Task<ResponseDTO> GetQuizzesFilterAsync(GetQuizFilterDTO getQuizFilterDTO);
 
         public Task<ResponseDTO> AddQuizQuestionsAsync(QuizQuestionsDTO quizQuestionsDTO);
+
+        public Task<ResponseDTO> GetQuizStatusCountAsync();
+
+        public Task<ResponseDTO> GetQuizDifficultiesAsync();
+
+        public Task<ResponseDTO> GetQuizCategoriesAsync();
+
+        public Task<ResponseDTO> GetQuizDetailsAsync(string quizLink);
     }
 }
