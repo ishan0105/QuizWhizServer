@@ -17,6 +17,7 @@ using System.Net.Http;
 using Newtonsoft.Json.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Filters;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace QuizWhiz.Application.Services
 {
@@ -37,14 +38,13 @@ namespace QuizWhiz.Application.Services
             _configuration = configuration;
         }
 
-        public async Task<ResponseDTO> CreateNewQuizAsync(QuizDTO quizDTO)
+        public async Task<ResponseDTO> CreateNewQuizAsync(CreateQuizDTO quizDTO)
         {
-            var quizzes = _unitOfWork.QuizRepository.GetAll();
+            var quizzes = await _unitOfWork.QuizRepository.GetAll();
 
             var allChar = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
             var random = new Random();
             var resultLink = "";
-
             bool isLinkUnique = false;
 
             do
@@ -119,7 +119,123 @@ namespace QuizWhiz.Application.Services
                 Message = "Something went wrong!!",
                 StatusCode = HttpStatusCode.BadRequest
             };
+        }
+        public async Task<ResponseDTO> GetQuizzesFilterAsync(GetQuizFilterDTO getQuizFilterDTO)
+        {
+            var query = from q in _unitOfWork.QuizRepository.GetTable()
+                                    join s in _unitOfWork.QuizScheduleRepository.GetTable()
+                                    on q.ScheduleId equals s.ScheduleId
+                                    where q.IsDeleted == false 
+                                    && (getQuizFilterDTO.StatusId == 0 || q.StatusId == getQuizFilterDTO.StatusId)
+                                    && (getQuizFilterDTO.DifficultyId == 0 || q.DifficultyId == getQuizFilterDTO.DifficultyId) 
+                                    && (getQuizFilterDTO.CategoryId == 0 || q.CategoryId == getQuizFilterDTO.CategoryId)
+                                    orderby s.ScheduledDate ascending
+                                    select new
+                                    {
+                                        q.QuizId,
+                                        q.Title,
+                                        q.Description,
+                                        q.CategoryId,
+                                        q.DifficultyId,
+                                        s.ScheduledDate,
+                                        q.QuizLink,
+                                    };
 
+            var quizzes = await query.ToListAsync().ConfigureAwait(false);
+
+            List<GetQuizDTO> getQuizDTOs = new List<GetQuizDTO>();
+
+            foreach (var quiz in quizzes)
+            {
+                GetQuizDTO getQuizDTO = new()
+                {
+                    QuizId = quiz.QuizId,
+                    Title = quiz.Title,
+                    Description = quiz.Description,
+                    ScheduledDate = quiz.ScheduledDate,
+                    CategoryId = quiz.CategoryId,
+                    DifficultyId = quiz.DifficultyId,
+                    QuizLink = quiz.QuizLink
+                };
+
+                getQuizDTOs.Add(getQuizDTO);
+            }
+
+            int recordSize = Int32.Parse(_configuration["Records:Size"]);
+            int totalCount = getQuizDTOs.Count;
+            int totalPage = (int)Math.Ceiling((double)totalCount / recordSize);
+
+            List<GetQuizDTO> sendQuizDTOs = getQuizDTOs
+            .Skip((getQuizFilterDTO.CurrentPage - 1) * recordSize)
+            .Take(recordSize)
+            .ToList();
+
+            PaginationDTO paginationDTO = new()
+            {
+                TotalCount = totalCount,
+                TotalPages = totalPage,
+                CurrentPage = getQuizFilterDTO.CurrentPage,
+                PageSize = 3,
+                RecordSize = recordSize
+            };
+
+            AllQuizDTO allQuizDTO = new()
+            {
+                GetQuizzes = sendQuizDTOs,
+                Pagination = paginationDTO
+            };
+
+            return new()
+            {
+                IsSuccess = true,
+                Message = "Quiz Details fetched successfully!!",
+                Data = allQuizDTO,
+                StatusCode = HttpStatusCode.OK
+            };
+        }
+
+        public async Task<ResponseDTO> AddQuizQuestionsAsync(QuizQuestionsDTO quizQuestionsDTO)
+        {
+            foreach(var questionDTO in quizQuestionsDTO.QuestionDTOs)
+            {
+                Question question = new()
+                {
+                    QuizId = quizQuestionsDTO.QuizId,
+                    QuestionTypeId = questionDTO.QuestionTypeId,
+                    QuestionText = questionDTO.QuestionText,
+                    IsDeleted = false
+                };
+
+                if (questionDTO.QuestionTypeId == 3 || questionDTO.QuestionTypeId == 4)
+                {
+                    question.OptionA = questionDTO.OptionA;
+                    question.OptionB = questionDTO.OptionB;
+                    question.OptionC = questionDTO.OptionC;
+                    question.OptionD = questionDTO.OptionD;
+                }
+
+                await _unitOfWork.QuestionRepository.CreateAsync(question);
+                await _unitOfWork.SaveAsync();
+
+                foreach (var answerText in questionDTO.Answers)
+                {
+                    Answer answer = new()
+                    {
+                        QuestionId = question.QuestionId,
+                        AnswerText = answerText
+                    };
+
+                    await _unitOfWork.AnswerRepository.CreateAsync(answer);
+                    await _unitOfWork.SaveAsync();
+                }
+            }
+
+            return new()
+            {
+                IsSuccess = true,
+                Message = "Questions Added Successfully!!",
+                StatusCode = HttpStatusCode.OK
+            };
         }
     }
 }

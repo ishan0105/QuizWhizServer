@@ -66,7 +66,6 @@ namespace QuizWhiz.Domain.Entities
         public string QuizLink { get; set; } = string.Empty;
 
         public int? ModifiedBy { get; set; }
-     
 
         [Column(TypeName = "timestamp without time zone")]
         public DateTime? ModifiedDate { get; set; }
