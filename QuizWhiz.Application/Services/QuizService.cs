@@ -320,5 +320,40 @@ namespace QuizWhiz.Application.Services
                 StatusCode = HttpStatusCode.OK,
             };
         }
+
+        public async Task<ResponseDTO> GetQuizCommentsAsync(string quizLink)
+        {
+            Quiz quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(u => u.QuizLink == quizLink);
+
+            if (quiz == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "QuizLink is Invalid!!",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            QuizComments quizComments = await _unitOfWork.QuizCommentsRepository.GetFirstOrDefaultAsync(u => u.QuizId == quiz.QuizId);
+
+            if (quizComments == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "No Comments Found!!",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            return new()
+            {
+                IsSuccess = true,
+                Message = "Quiz Comments Fetched Successfully!!",
+                Data = quiz,
+                StatusCode = HttpStatusCode.OK,
+            };
+        }
     }
 }

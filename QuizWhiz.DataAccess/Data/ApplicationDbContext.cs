@@ -34,6 +34,6 @@ namespace QuizWhiz.DataAccess.Data
 
         public DbSet<QuizStatus> QuizStatuses { get; set; }
 
-        public DbSet<Comments> Comments { get; set; }
+        public DbSet<QuizComments> QuizComments { get; set; }
     }
 }
