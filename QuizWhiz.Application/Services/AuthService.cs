@@ -333,6 +333,50 @@ namespace QuizWhiz.Application.Services
             };
         }
 
+        public async Task<ResponseDTO> SetProfilePhoto(ProfileDetailsDTO profileDetailsDTO)
+        {
+            var user = await _unitOfWork.UserRepository.GetFirstOrDefaultAsync(u => u.Username == profileDetailsDTO.Username);
+            if (user == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "User does not Exists!!",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+
+            IFormFile file = profileDetailsDTO.ProfilePhoto;
+            var filePath = "";
+            if (file != null && file.Length > 0)
+            {
+                var directory = "D:\\QuizWhizClient\\quizwhiz-client\\public\\ProfilePhoto";
+                var folderPath = Path.Combine(directory, profileDetailsDTO.Username.ToString());
+                var extension = Path.GetExtension(file.FileName);
+                if (!Directory.Exists(folderPath))
+                {
+                    Directory.CreateDirectory(folderPath);
+                }
+                var FileName = profileDetailsDTO.Username + extension;
+                filePath = Path.Combine(folderPath, FileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    file.CopyTo(stream);
+                }
+            }
+
+            user.ProfileImageURL = filePath;
+            await _unitOfWork.SaveAsync();
+
+            return new()
+            {
+                IsSuccess = true,
+                Message = "User updated successfully.",
+                StatusCode = HttpStatusCode.OK
+            };
+        }
+
         public async Task<ResponseDTO> SetRecordSizeAsync(int recordSize)
         {
             _configuration["Records:Size"] = recordSize.ToString();

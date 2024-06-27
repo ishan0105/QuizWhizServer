@@ -194,7 +194,26 @@ namespace QuizWhiz.API.Controllers
             }
             return await _authService.SetProfileDetailsAsync(profileDetailsDTO);
         }
-      
+
+        [HttpPost("upload-profile-photo")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(500)]
+        public async Task<ResponseDTO> UploadProfilePhoto([FromForm] ProfileDetailsDTO profileDetailsDTO)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Something Went Wrong",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+            return await _authService.SetProfilePhoto(profileDetailsDTO);
+        }
+
         [HttpGet("change-record-size")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]

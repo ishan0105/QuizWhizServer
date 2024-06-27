@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,5 +20,6 @@ namespace QuizWhiz.Application.DTOs.Response
         public string PhoneNumber { get; set; } = string.Empty;
 
         public string Country { get; set; } = string.Empty;
+        public IFormFile ProfilePhoto { get; set; } = null;
     }
 }
