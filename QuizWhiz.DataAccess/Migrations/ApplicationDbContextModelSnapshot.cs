@@ -44,36 +44,6 @@ namespace QuizWhiz.DataAccess.Migrations
                     b.ToTable("Answers");
                 });
 
-            modelBuilder.Entity("QuizWhiz.Domain.Entities.Comments", b =>
-                {
-                    b.Property<int>("CommentId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("CommentId"));
-
-                    b.Property<string>("Comment")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<int>("QuizId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("CommentId");
-
-                    b.HasIndex("QuizId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Comments");
-                });
-
             modelBuilder.Entity("QuizWhiz.Domain.Entities.Question", b =>
                 {
                     b.Property<int>("QuestionId")
@@ -237,6 +207,36 @@ namespace QuizWhiz.DataAccess.Migrations
                     b.HasKey("CategoryId");
 
                     b.ToTable("QuizCategories");
+                });
+
+            modelBuilder.Entity("QuizWhiz.Domain.Entities.QuizComments", b =>
+                {
+                    b.Property<int>("QuizCommentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("QuizCommentId"));
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("QuizId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("QuizCommentId");
+
+                    b.HasIndex("QuizId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("QuizComments");
                 });
 
             modelBuilder.Entity("QuizWhiz.Domain.Entities.QuizDifficulty", b =>
@@ -409,25 +409,6 @@ namespace QuizWhiz.DataAccess.Migrations
                     b.Navigation("Question");
                 });
 
-            modelBuilder.Entity("QuizWhiz.Domain.Entities.Comments", b =>
-                {
-                    b.HasOne("QuizWhiz.Domain.Entities.Quiz", "Quiz")
-                        .WithMany()
-                        .HasForeignKey("QuizId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("QuizWhiz.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Quiz");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("QuizWhiz.Domain.Entities.Question", b =>
                 {
                     b.HasOne("QuizWhiz.Domain.Entities.QuestionType", "QuestionType")
@@ -494,6 +475,25 @@ namespace QuizWhiz.DataAccess.Migrations
                     b.Navigation("Schedule");
 
                     b.Navigation("Status");
+                });
+
+            modelBuilder.Entity("QuizWhiz.Domain.Entities.QuizComments", b =>
+                {
+                    b.HasOne("QuizWhiz.Domain.Entities.Quiz", "Quiz")
+                        .WithMany()
+                        .HasForeignKey("QuizId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("QuizWhiz.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Quiz");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("QuizWhiz.Domain.Entities.User", b =>
