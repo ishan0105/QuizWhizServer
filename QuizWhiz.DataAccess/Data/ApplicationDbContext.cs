@@ -33,5 +33,7 @@ namespace QuizWhiz.DataAccess.Data
         public DbSet<QuizDifficulty> QuizDifficulties { get; set; }
 
         public DbSet<QuizStatus> QuizStatuses { get; set; }
+
+        public DbSet<QuizComments> QuizComments { get; set; }
     }
 }
