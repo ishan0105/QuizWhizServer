@@ -92,7 +92,7 @@ namespace QuizWhiz.Application.Services
                 return new()
                 {
                     IsSuccess = false,
-                    Message = "Admin not found",
+                    Message = "Invalid Credentials",
                     StatusCode = HttpStatusCode.BadRequest
                 };
             }

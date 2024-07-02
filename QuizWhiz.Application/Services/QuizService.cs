@@ -19,6 +19,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Filters;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using System.Buffers;
+using Microsoft.Extensions.Options;
 
 namespace QuizWhiz.Application.Services
 {
@@ -221,10 +222,28 @@ namespace QuizWhiz.Application.Services
 
                 if (questionDTO.QuestionTypeId == 3 || questionDTO.QuestionTypeId == 4)
                 {
-                    question.OptionA = questionDTO.OptionA;
-                    question.OptionB = questionDTO.OptionB;
-                    question.OptionC = questionDTO.OptionC;
-                    question.OptionD = questionDTO.OptionD;
+                    int count = 0;
+                    foreach(var option in questionDTO.Options)
+                    {
+                        count++;
+                        switch (count)
+                        {
+                            case 1:
+                                question.OptionA = option;
+                                break;
+                            case 2:
+                                question.OptionB = option;
+                                break;
+                            case 3:
+                                question.OptionC = option;
+                                break;
+                            case 4:
+                                question.OptionD = option;
+                                break;
+                            default:
+                                break;
+                        }
+                    }
                 }
 
                 await _unitOfWork.QuestionRepository.CreateAsync(question);
