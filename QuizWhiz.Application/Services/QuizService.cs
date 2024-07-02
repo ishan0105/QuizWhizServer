@@ -214,11 +214,23 @@ namespace QuizWhiz.Application.Services
 
         public async Task<ResponseDTO> AddQuizQuestionsAsync(QuizQuestionsDTO quizQuestionsDTO)
         {
+            Quiz? quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(u => u.QuizLink == quizQuestionsDTO.QuizLink);
+
+            if(quiz == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "No Quizzes Found!!",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+
             foreach (var questionDTO in quizQuestionsDTO.QuestionDTOs)
             {
                 Question question = new()
                 {
-                    QuizId = quizQuestionsDTO.QuizId,
+                    QuizId = quiz.QuizId,
                     QuestionTypeId = questionDTO.QuestionTypeId,
                     QuestionText = questionDTO.QuestionText,
                     IsDeleted = false
@@ -226,28 +238,10 @@ namespace QuizWhiz.Application.Services
 
                 if (questionDTO.QuestionTypeId == 1 || questionDTO.QuestionTypeId == 2)
                 {
-                    int count = 0;
-                    foreach(var option in questionDTO.Options)
-                    {
-                        count++;
-                        switch (count)
-                        {
-                            case 1:
-                                question.OptionA = option;
-                                break;
-                            case 2:
-                                question.OptionB = option;
-                                break;
-                            case 3:
-                                question.OptionC = option;
-                                break;
-                            case 4:
-                                question.OptionD = option;
-                                break;
-                            default:
-                                break;
-                        }
-                    }
+                    question.OptionA = questionDTO.Options.ElementAt(0);
+                    question.OptionB = questionDTO.Options.ElementAt(1);
+                    question.OptionC = questionDTO.Options.ElementAt(2);
+                    question.OptionD = questionDTO.Options.ElementAt(3);
                 }
 
                 await _unitOfWork.QuestionRepository.CreateAsync(question);
