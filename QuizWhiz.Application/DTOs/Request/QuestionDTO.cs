@@ -14,13 +14,7 @@ namespace QuizWhiz.Application.DTOs.Request
 
         public required string QuestionText { get; set; }
 
-        public string OptionA { get; set; } = string.Empty;
-
-        public string OptionB { get; set; } = string.Empty;
-
-        public string OptionC { get; set; } = string.Empty;
-
-        public string OptionD { get; set; } = string.Empty;
+        public List<string> Options { get; set; } = [];
 
         public List<string> Answers { get; set; } = [];
     }
