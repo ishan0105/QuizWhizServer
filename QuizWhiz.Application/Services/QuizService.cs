@@ -143,6 +143,7 @@ namespace QuizWhiz.Application.Services
                             q.DifficultyId,
                             s.ScheduledDate,
                             q.QuizLink,
+                            q.Category.CategoryName,
                         };
 
             var quizzes = await query.ToListAsync().ConfigureAwait(false);
@@ -159,7 +160,8 @@ namespace QuizWhiz.Application.Services
                     ScheduledDate = quiz.ScheduledDate,
                     CategoryId = quiz.CategoryId,
                     DifficultyId = quiz.DifficultyId,
-                    QuizLink = quiz.QuizLink
+                    QuizLink = quiz.QuizLink,
+                    CategoryName = quiz.CategoryName,
                 };
 
                 getQuizDTOs.Add(getQuizDTO);

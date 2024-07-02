@@ -20,6 +20,6 @@ namespace QuizWhiz.Application.DTOs.Response
         public string PhoneNumber { get; set; } = string.Empty;
 
         public string Country { get; set; } = string.Empty;
-        public IFormFile ProfilePhoto { get; set; } = null;
+        public IFormFile? ProfilePhoto { get; set; } = null;
     }
 }
