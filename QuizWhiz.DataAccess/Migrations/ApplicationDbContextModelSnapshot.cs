@@ -56,19 +56,15 @@ namespace QuizWhiz.DataAccess.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("OptionA")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("OptionB")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("OptionC")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("OptionD")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("QuestionText")
@@ -153,7 +149,6 @@ namespace QuizWhiz.DataAccess.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("QuizLink")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("ScheduleId")
