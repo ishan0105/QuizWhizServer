@@ -8,7 +8,7 @@ namespace QuizWhiz.Application.DTOs.Request
 {
     public class QuestionDTO
     {
-        public int QuizId { get; set; }
+        public int? QuizId { get; set; }
 
         public required int QuestionTypeId { get; set; }
 

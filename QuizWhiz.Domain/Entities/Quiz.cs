@@ -63,7 +63,7 @@ namespace QuizWhiz.Domain.Entities
         [Required]
         public required DateTime CreatedDate { get; set; }
 
-        public string QuizLink { get; set; } = string.Empty;
+        public string? QuizLink { get; set; } = string.Empty;
 
         public int? ModifiedBy { get; set; }
 

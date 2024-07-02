@@ -111,6 +111,7 @@ namespace QuizWhiz.Application.Services
                 {
                     IsSuccess = true,
                     Message = "Quiz Details added successfully!!",
+                    Data = quiz.QuizLink,
                     StatusCode = HttpStatusCode.OK
                 };
             }
@@ -122,6 +123,7 @@ namespace QuizWhiz.Application.Services
                 StatusCode = HttpStatusCode.BadRequest
             };
         }
+
         public async Task<ResponseDTO> GetQuizzesFilterAsync(GetQuizFilterDTO getQuizFilterDTO)
         {
             var query = from q in _unitOfWork.QuizRepository.GetTable()
@@ -222,7 +224,7 @@ namespace QuizWhiz.Application.Services
                     IsDeleted = false
                 };
 
-                if (questionDTO.QuestionTypeId == 3 || questionDTO.QuestionTypeId == 4)
+                if (questionDTO.QuestionTypeId == 1 || questionDTO.QuestionTypeId == 2)
                 {
                     int count = 0;
                     foreach(var option in questionDTO.Options)
