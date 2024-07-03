@@ -197,5 +197,44 @@ namespace QuizWhiz.API.Controllers
 
             return await _quizService.GetQuizCommentsAsync(quizLink);
         }
+
+        [HttpGet("get-quiz-questions")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        public async Task<ResponseDTO> GetQuizQuestions([FromQuery] string quizLink)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Something Went Wrong",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+
+            return await _quizService.GetQuizQuestionsAsync(quizLink);
+        }
+
+        [HttpPost("update-quiz-details")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        [CustomAuthorize("Admin")]
+        public async Task<ResponseDTO> UpdateQuizDetails([FromBody] UpdateQuizDetailsDTO updateQuizDetailsDTO)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Something Went Wrong",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+
+            return await _quizService.UpdateQuizDetailsAsync(updateQuizDetailsDTO);
+        }
     }
 }

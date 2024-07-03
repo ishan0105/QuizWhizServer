@@ -178,7 +178,7 @@ namespace QuizWhiz.Application.Services
             .Take(recordSize)
             .ToList();
 
-            if(totalCount == 0)
+            if (totalCount == 0)
             {
                 return new()
                 {
@@ -187,7 +187,7 @@ namespace QuizWhiz.Application.Services
                     StatusCode = HttpStatusCode.BadRequest
                 };
             }
-            
+
             PaginationDTO paginationDTO = new()
             {
                 TotalCount = totalCount,
@@ -216,7 +216,7 @@ namespace QuizWhiz.Application.Services
         {
             Quiz? quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(u => u.QuizLink == quizQuestionsDTO.QuizLink);
 
-            if(quiz == null)
+            if (quiz == null)
             {
                 return new()
                 {
@@ -318,27 +318,27 @@ namespace QuizWhiz.Application.Services
         public async Task<ResponseDTO> GetQuizDetailsAsync(string quizLink)
         {
             var query = (from q in _unitOfWork.QuizRepository.GetTable()
-                        join s in _unitOfWork.QuizScheduleRepository.GetTable()
-                        on q.ScheduleId equals s.ScheduleId
-                        where q.IsDeleted == false
-                        && q.QuizLink == quizLink
-                        select new
-                        {
-                            q.QuizId,
-                            q.Title,
-                            q.Description,
-                            q.CategoryId,
-                            q.DifficultyId,
-                            s.ScheduledDate,
-                            q.TotalQuestion,
-                            q.MarksPerQuestion,
-                            q.NegativePerQuestion,
-                            q.TotalMarks,
-                            q.MinMarks, 
-                            q.WinningAmount,
-                            q.QuizLink,
-                            q.Category.CategoryName,
-                        });
+                         join s in _unitOfWork.QuizScheduleRepository.GetTable()
+                         on q.ScheduleId equals s.ScheduleId
+                         where q.IsDeleted == false
+                         && q.QuizLink == quizLink
+                         select new
+                         {
+                             q.QuizId,
+                             q.Title,
+                             q.Description,
+                             q.CategoryId,
+                             q.DifficultyId,
+                             s.ScheduledDate,
+                             q.TotalQuestion,
+                             q.MarksPerQuestion,
+                             q.NegativePerQuestion,
+                             q.TotalMarks,
+                             q.MinMarks,
+                             q.WinningAmount,
+                             q.QuizLink,
+                             q.Category.CategoryName,
+                         });
 
             var quiz = await query.FirstOrDefaultAsync().ConfigureAwait(false);
 
@@ -438,9 +438,9 @@ namespace QuizWhiz.Application.Services
 
             var quizComments = await query.ToListAsync().ConfigureAwait(false);
 
-            List<GetCommentsDTO> getCommentsDTOs = new ();
+            List<GetCommentsDTO> getCommentsDTOs = new();
 
-            foreach(var quizComment in quizComments)
+            foreach (var quizComment in quizComments)
             {
                 GetCommentsDTO getCommentsDTO = new()
                 {
@@ -473,6 +473,118 @@ namespace QuizWhiz.Application.Services
                 Message = "Quiz Comments Fetched Successfully!!",
                 Data = getCommentsDTOs,
                 StatusCode = HttpStatusCode.OK,
+            };
+        }
+
+        public async Task<ResponseDTO> GetQuizQuestionsAsync(string quizLink)
+        {
+            var query = (from q in _unitOfWork.QuizRepository.GetTable()
+                         join qu in _unitOfWork.QuestionRepository.GetTable() on q.QuizId equals qu.QuizId
+                         join a in _unitOfWork.AnswerRepository.GetTable() on qu.QuestionId equals a.QuestionId into AnswersGroup
+                         where q.IsDeleted == false
+                         && q.QuizLink == quizLink
+                         select new
+                         {
+                             qu.QuestionId,
+                             q.QuizId,
+                             qu.QuestionTypeId,
+                             qu.QuestionText,
+                             qu.OptionA,
+                             qu.OptionB,
+                             qu.OptionC,
+                             qu.OptionD,
+                             Answers = AnswersGroup.ToList()
+                         });
+
+            var quizQuestions = await query.ToListAsync().ConfigureAwait(false);
+
+            List<GetQuestionsDTO> getQuestionsDTOs = new();
+
+            foreach (var quizQuestion in quizQuestions)
+            {
+                GetQuestionsDTO getQuestionsDTO = new()
+                {
+                    QuestionId = quizQuestion.QuestionId,
+                    QuizId = quizQuestion.QuizId,
+                    QuestionTypeId = quizQuestion.QuestionTypeId,
+                    QuestionText = quizQuestion.QuestionText,
+                    OptionA = quizQuestion.OptionA,
+                    OptionB = quizQuestion.OptionB,
+                    OptionC = quizQuestion.OptionC,
+                    OptionD = quizQuestion.OptionD,
+                    Answers = quizQuestion.Answers
+                };
+
+                getQuestionsDTOs.Add(getQuestionsDTO);
+            }
+
+            if (getQuestionsDTOs == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "No Questions Found!!",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            return new()
+            {
+                IsSuccess = true,
+                Message = "Quiz Questions Fetched Successfully!!",
+                Data = getQuestionsDTOs,
+                StatusCode = HttpStatusCode.OK,
+            };
+        }
+
+        public async Task<ResponseDTO> UpdateQuizDetailsAsync(UpdateQuizDetailsDTO updateQuizDetailsDTO)
+        {
+            Quiz quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(u => u.QuizLink == updateQuizDetailsDTO.QuizLink);
+
+            var token = _jwtHelper.DecodeToken();
+            var username = token.Username;
+
+            var user = (await _unitOfWork.UserRepository.GetFirstOrDefaultAsync(u => u.Username == username));
+
+            if (quiz == null || user == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "QuizLink is Invalid!!",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            quiz.Title = updateQuizDetailsDTO.Title;
+            quiz.Description = updateQuizDetailsDTO.Description;
+            quiz.CategoryId = updateQuizDetailsDTO.CategoryId;
+            quiz.DifficultyId = updateQuizDetailsDTO.DifficultyId;
+            quiz.WinningAmount = updateQuizDetailsDTO.WinningAmount;
+            quiz.ModifiedBy = user.UserId;
+            quiz.ModifiedDate = DateTime.Now;
+
+            QuizSchedule quizSchedule = await _unitOfWork.QuizScheduleRepository.GetFirstOrDefaultAsync(u => u.ScheduleId == quiz.ScheduleId);
+
+            if(quizSchedule == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Quiz Schedule Not Found!!",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            quizSchedule.ScheduledDate = updateQuizDetailsDTO.ScheduleDate;
+            quizSchedule.ModifiedDate = quiz.ModifiedDate;
+            await _unitOfWork.SaveAsync();
+
+            return new()
+            {
+                IsSuccess = true,
+                Message = "Quiz Details updated successfully!!",
+                StatusCode = HttpStatusCode.OK
             };
         }
     }
