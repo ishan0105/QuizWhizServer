@@ -508,10 +508,10 @@ namespace QuizWhiz.Application.Services
                     QuizId = quizQuestion.QuizId,
                     QuestionTypeId = quizQuestion.QuestionTypeId,
                     QuestionText = quizQuestion.QuestionText,
-                    OptionA = quizQuestion.OptionA,
-                    OptionB = quizQuestion.OptionB,
-                    OptionC = quizQuestion.OptionC,
-                    OptionD = quizQuestion.OptionD,
+                    QuestionOptions = [quizQuestion.OptionA, 
+                        quizQuestion.OptionB, 
+                        quizQuestion.OptionC, 
+                        quizQuestion.OptionD],
                     Answers = quizQuestion.Answers
                 };
 
@@ -584,6 +584,39 @@ namespace QuizWhiz.Application.Services
             {
                 IsSuccess = true,
                 Message = "Quiz Details updated successfully!!",
+                StatusCode = HttpStatusCode.OK
+            };
+        }
+
+        public async Task<ResponseDTO> DeleteQuizAsync(string quizLink)
+        {
+            Quiz quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(u => u.QuizLink == quizLink);
+
+            var token = _jwtHelper.DecodeToken();
+            var username = token.Username;
+
+            var user = (await _unitOfWork.UserRepository.GetFirstOrDefaultAsync(u => u.Username == username));
+
+            if (quiz == null || user == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "QuizLink is Invalid!!",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            quiz.IsDeleted = true;
+            quiz.ModifiedBy = user.UserId;
+            quiz.ModifiedDate = DateTime.Now;
+
+            await _unitOfWork.SaveAsync();
+
+            return new()
+            {
+                IsSuccess = true,
+                Message = "Quiz Deleted successfully!!",
                 StatusCode = HttpStatusCode.OK
             };
         }
