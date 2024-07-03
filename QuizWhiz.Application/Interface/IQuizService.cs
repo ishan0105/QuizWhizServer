@@ -27,5 +27,9 @@ namespace QuizWhiz.Application.Interface
         public Task<ResponseDTO> AddQuizCommentAsync(AddQuizCommentDTO addQuizCommentDTO);
 
         public Task<ResponseDTO> GetQuizCommentsAsync(string quizLink);
+
+        public Task<ResponseDTO> GetQuizQuestionsAsync(string quizLink);
+
+        public Task<ResponseDTO> UpdateQuizDetailsAsync(UpdateQuizDetailsDTO updateQuizDetailsDTO);
     }
 }
