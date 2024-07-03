@@ -31,5 +31,7 @@ namespace QuizWhiz.Application.Interface
         public Task<ResponseDTO> GetQuizQuestionsAsync(string quizLink);
 
         public Task<ResponseDTO> UpdateQuizDetailsAsync(UpdateQuizDetailsDTO updateQuizDetailsDTO);
+
+        public Task<ResponseDTO> DeleteQuizAsync(string quizLink);
     }
 }
