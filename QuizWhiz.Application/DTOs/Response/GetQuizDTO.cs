@@ -16,6 +16,20 @@ namespace QuizWhiz.Application.DTOs.Response
 
         public int? CategoryId { get; set; } = null;
 
+        public string? CategoryName { get; set; } = null;
+
+        public int? TotalQuestion {  get; set; } = 0;
+
+        public int? MarksPerQuestion { get; set; } = 0;
+
+        public int? NegativePerQuestion { get; set; } = 0;
+
+        public int? TotalMarks { get; set; } = 0;
+
+        public int? MinMarks { get; set; } = 0;
+
+        public int? WinningAmount { get; set; } = 0;
+
         public int? DifficultyId { get; set; } = null;
 
         public DateTime ScheduledDate { get; set; }

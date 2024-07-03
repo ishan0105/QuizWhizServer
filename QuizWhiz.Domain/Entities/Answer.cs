@@ -16,7 +16,6 @@ namespace QuizWhiz.Domain.Entities
         [Required]
         [ForeignKey("QuestionId")]
         public required int QuestionId { get; set; }
-      
 
         [Required]
         public required string AnswerText { get; set; }

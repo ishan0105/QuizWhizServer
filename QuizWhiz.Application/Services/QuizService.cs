@@ -19,6 +19,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Filters;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using System.Buffers;
+using Microsoft.Extensions.Options;
 
 namespace QuizWhiz.Application.Services
 {
@@ -110,6 +111,7 @@ namespace QuizWhiz.Application.Services
                 {
                     IsSuccess = true,
                     Message = "Quiz Details added successfully!!",
+                    Data = quiz.QuizLink,
                     StatusCode = HttpStatusCode.OK
                 };
             }
@@ -121,6 +123,7 @@ namespace QuizWhiz.Application.Services
                 StatusCode = HttpStatusCode.BadRequest
             };
         }
+
         public async Task<ResponseDTO> GetQuizzesFilterAsync(GetQuizFilterDTO getQuizFilterDTO)
         {
             var query = from q in _unitOfWork.QuizRepository.GetTable()
@@ -142,6 +145,7 @@ namespace QuizWhiz.Application.Services
                             q.DifficultyId,
                             s.ScheduledDate,
                             q.QuizLink,
+                            q.Category.CategoryName,
                         };
 
             var quizzes = await query.ToListAsync().ConfigureAwait(false);
@@ -158,7 +162,8 @@ namespace QuizWhiz.Application.Services
                     ScheduledDate = quiz.ScheduledDate,
                     CategoryId = quiz.CategoryId,
                     DifficultyId = quiz.DifficultyId,
-                    QuizLink = quiz.QuizLink
+                    QuizLink = quiz.QuizLink,
+                    CategoryName = quiz.CategoryName,
                 };
 
                 getQuizDTOs.Add(getQuizDTO);
@@ -209,22 +214,34 @@ namespace QuizWhiz.Application.Services
 
         public async Task<ResponseDTO> AddQuizQuestionsAsync(QuizQuestionsDTO quizQuestionsDTO)
         {
+            Quiz? quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(u => u.QuizLink == quizQuestionsDTO.QuizLink);
+
+            if(quiz == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "No Quizzes Found!!",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+
             foreach (var questionDTO in quizQuestionsDTO.QuestionDTOs)
             {
                 Question question = new()
                 {
-                    QuizId = quizQuestionsDTO.QuizId,
+                    QuizId = quiz.QuizId,
                     QuestionTypeId = questionDTO.QuestionTypeId,
                     QuestionText = questionDTO.QuestionText,
                     IsDeleted = false
                 };
 
-                if (questionDTO.QuestionTypeId == 3 || questionDTO.QuestionTypeId == 4)
+                if (questionDTO.QuestionTypeId == 1 || questionDTO.QuestionTypeId == 2)
                 {
-                    question.OptionA = questionDTO.OptionA;
-                    question.OptionB = questionDTO.OptionB;
-                    question.OptionC = questionDTO.OptionC;
-                    question.OptionD = questionDTO.OptionD;
+                    question.OptionA = questionDTO.Options.ElementAt(0);
+                    question.OptionB = questionDTO.Options.ElementAt(1);
+                    question.OptionC = questionDTO.Options.ElementAt(2);
+                    question.OptionD = questionDTO.Options.ElementAt(3);
                 }
 
                 await _unitOfWork.QuestionRepository.CreateAsync(question);
@@ -300,30 +317,30 @@ namespace QuizWhiz.Application.Services
 
         public async Task<ResponseDTO> GetQuizDetailsAsync(string quizLink)
         {
-            Quiz quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(u => u.QuizLink == quizLink);
+            var query = (from q in _unitOfWork.QuizRepository.GetTable()
+                        join s in _unitOfWork.QuizScheduleRepository.GetTable()
+                        on q.ScheduleId equals s.ScheduleId
+                        where q.IsDeleted == false
+                        && q.QuizLink == quizLink
+                        select new
+                        {
+                            q.QuizId,
+                            q.Title,
+                            q.Description,
+                            q.CategoryId,
+                            q.DifficultyId,
+                            s.ScheduledDate,
+                            q.TotalQuestion,
+                            q.MarksPerQuestion,
+                            q.NegativePerQuestion,
+                            q.TotalMarks,
+                            q.MinMarks, 
+                            q.WinningAmount,
+                            q.QuizLink,
+                            q.Category.CategoryName,
+                        });
 
-            if(quiz == null)
-            {
-                return new()
-                {
-                    IsSuccess = false,
-                    Message = "QuizLink is Invalid!!",
-                    StatusCode = HttpStatusCode.BadRequest,
-                };
-            }
-
-            return new()
-            {
-                IsSuccess = true,
-                Message = "Quiz Details Fetched Successfully!!",
-                Data = quiz,
-                StatusCode = HttpStatusCode.OK,
-            };
-        }
-
-        public async Task<ResponseDTO> GetQuizCommentsAsync(string quizLink)
-        {
-            Quiz quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(u => u.QuizLink == quizLink);
+            var quiz = await query.FirstOrDefaultAsync().ConfigureAwait(false);
 
             if (quiz == null)
             {
@@ -335,9 +352,112 @@ namespace QuizWhiz.Application.Services
                 };
             }
 
-            QuizComments quizComments = await _unitOfWork.QuizCommentsRepository.GetFirstOrDefaultAsync(u => u.QuizId == quiz.QuizId);
+            GetQuizDTO getQuizDTO = new()
+            {
+                QuizId = quiz.QuizId,
+                CategoryId = quiz.CategoryId,
+                DifficultyId = quiz.DifficultyId,
+                ScheduledDate = quiz.ScheduledDate,
+                TotalQuestion = quiz.TotalQuestion,
+                MarksPerQuestion = quiz.NegativePerQuestion,
+                WinningAmount = quiz.WinningAmount,
+                CategoryName = quiz.CategoryName,
+                Description = quiz.Description,
+                MinMarks = quiz.MinMarks,
+                NegativePerQuestion = quiz.NegativePerQuestion,
+                QuizLink = quiz.QuizLink,
+                Title = quiz.Title,
+                TotalMarks = quiz.TotalMarks
+            };
 
-            if (quizComments == null)
+            return new()
+            {
+                IsSuccess = true,
+                Message = "Quiz Details Fetched Successfully!!",
+                Data = getQuizDTO,
+                StatusCode = HttpStatusCode.OK,
+            };
+        }
+
+        public async Task<ResponseDTO> AddQuizCommentAsync(AddQuizCommentDTO addQuizCommentDTO)
+        {
+            Quiz quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(u => u.QuizLink == addQuizCommentDTO.QuizLink);
+
+            var token = _jwtHelper.DecodeToken();
+            var username = token.Username;
+
+            var user = (await _unitOfWork.UserRepository.GetFirstOrDefaultAsync(u => u.Username == username));
+
+            if (quiz == null || user == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "QuizLink is Invalid!!",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            QuizComments quizComment = new()
+            {
+                QuizId = quiz.QuizId,
+                UserId = user.UserId,
+                Comment = addQuizCommentDTO.Comment,
+                CreatedDate = DateTime.Now,
+            };
+
+            await _unitOfWork.QuizCommentsRepository.CreateAsync(quizComment);
+            await _unitOfWork.SaveAsync();
+
+            return new()
+            {
+                IsSuccess = true,
+                Message = "Quiz Comment added successfully!!",
+                StatusCode = HttpStatusCode.OK
+            };
+        }
+
+        public async Task<ResponseDTO> GetQuizCommentsAsync(string quizLink)
+        {
+            var query = (from q in _unitOfWork.QuizRepository.GetTable()
+                         join c in _unitOfWork.QuizCommentsRepository.GetTable() on q.QuizId equals c.QuizId
+                         join u in _unitOfWork.UserRepository.GetTable() on c.UserId equals u.UserId
+                         where q.IsDeleted == false
+                         && q.QuizLink == quizLink
+                         select new
+                         {
+                             c.QuizCommentId,
+                             q.QuizId,
+                             c.UserId,
+                             c.Comment,
+                             c.CreatedDate,
+                             u.Username,
+                             u.NameAbbreviation,
+                             u.ProfileImageURL
+                         });
+
+            var quizComments = await query.ToListAsync().ConfigureAwait(false);
+
+            List<GetCommentsDTO> getCommentsDTOs = new ();
+
+            foreach(var quizComment in quizComments)
+            {
+                GetCommentsDTO getCommentsDTO = new()
+                {
+                    QuizCommentId = quizComment.QuizId,
+                    QuizId = quizComment.QuizId,
+                    UserId = quizComment.UserId,
+                    Comment = quizComment.Comment,
+                    CreatedDate = quizComment.CreatedDate,
+                    Username = quizComment.Username,
+                    NameAbbreviation = quizComment.NameAbbreviation,
+                    ProfileImageURL = quizComment.ProfileImageURL
+                };
+
+                getCommentsDTOs.Add(getCommentsDTO);
+            }
+
+            if (getCommentsDTOs == null)
             {
                 return new()
                 {
@@ -351,7 +471,7 @@ namespace QuizWhiz.Application.Services
             {
                 IsSuccess = true,
                 Message = "Quiz Comments Fetched Successfully!!",
-                Data = quiz,
+                Data = getCommentsDTOs,
                 StatusCode = HttpStatusCode.OK,
             };
         }
