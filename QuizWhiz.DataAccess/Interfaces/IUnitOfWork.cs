@@ -12,19 +12,15 @@ namespace QuizWhiz.DataAccess.Interfaces
 
         public IBaseRepository<QuestionType> QuestionTypeRepository { get; set; }
 
-        public IBaseRepository<Answer> AnswerRepository { get; set; }
+        public IBaseRepository<Option> OptionRepository { get; set; }
 
         public IBaseRepository<Quiz> QuizRepository { get; set; }
 
         public IBaseRepository<QuizCategory> QuizCategoryRepository { get; set; }
 
-        public IBaseRepository<QuizSchedule> QuizScheduleRepository { get; set; }
-
         public IBaseRepository<QuizDifficulty> QuizDifficultyRepository { get; set; }
 
         public IBaseRepository<QuizStatus> QuizStatusRepository {  get; set; }
-
-        public IBaseRepository<QuizComments> QuizCommentsRepository { get; set; }
 
         public Task SaveAsync();
     }

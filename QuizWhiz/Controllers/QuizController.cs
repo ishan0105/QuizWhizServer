@@ -159,12 +159,11 @@ namespace QuizWhiz.API.Controllers
             return await _quizService.GetQuizDetailsAsync(quizLink);
         }
 
-        [HttpPost("add-quiz-comment")]
+        [HttpGet("get-quiz-questions")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(500)]
-        [CustomAuthorize("Admin Contestant")]
-        public async Task<ResponseDTO> AddQuizComment([FromBody] AddQuizCommentDTO addQuizCommentDTO)
+        public async Task<ResponseDTO> GetQuizQuestions([FromQuery] string quizLink)
         {
             if (!ModelState.IsValid)
             {
@@ -176,14 +175,15 @@ namespace QuizWhiz.API.Controllers
                 };
             }
 
-            return await _quizService.AddQuizCommentAsync(addQuizCommentDTO);
+            return await _quizService.GetQuizQuestionsAsync(quizLink);
         }
 
-        [HttpGet("get-quiz-comments")]
+        [HttpPost("update-quiz-details")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(500)]
-        public async Task<ResponseDTO> GetQuizComments([FromQuery] string quizLink)
+        [CustomAuthorize("Admin")]
+        public async Task<ResponseDTO> UpdateQuizDetails([FromBody] UpdateQuizDetailsDTO updateQuizDetailsDTO)
         {
             if (!ModelState.IsValid)
             {
@@ -195,7 +195,27 @@ namespace QuizWhiz.API.Controllers
                 };
             }
 
-            return await _quizService.GetQuizCommentsAsync(quizLink);
+            return await _quizService.UpdateQuizDetailsAsync(updateQuizDetailsDTO);
+        }
+
+        [HttpGet("delete-quiz")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        [CustomAuthorize("Admin")]
+        public async Task<ResponseDTO> DeleteQuiz([FromQuery] string quizLink)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Something Went Wrong",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+
+            return await _quizService.DeleteQuizAsync(quizLink);
         }
     }
 }

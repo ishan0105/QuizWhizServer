@@ -8,17 +8,23 @@ using System.Threading.Tasks;
 
 namespace QuizWhiz.Domain.Entities
 {
-    public class Answer
+    public class Option
     {
         [Key]
-        public int AnswerId { get; set; }
+        public int OptionId { get; set; }
 
         [Required]
         [ForeignKey("QuestionId")]
         public required int QuestionId { get; set; }
 
         [Required]
-        public required string AnswerText { get; set; }
+        public required int OptionNo { get; set; }
+
+        [Required]
+        public required string? OptionText { get; set; } = string.Empty;
+
+        [Required]
+        public bool IsAnswer { get; set; } = false;
 
         public Question Question { get; set; }
 

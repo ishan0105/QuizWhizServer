@@ -1,15 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace QuizWhiz.Application.DTOs.Request
 {
-    public class CreateQuizDTO
+    public class UpdateQuizDetailsDTO
     {
+        [Required]
+        public required string QuizLink { get; set; }
+            
         [Required(ErrorMessage = "Title is required")]
         public required string Title { get; set; }
 
@@ -22,23 +25,8 @@ namespace QuizWhiz.Application.DTOs.Request
         [Required(ErrorMessage = "Difficulty is required")]
         public required int DifficultyId { get; set; }
 
-        [Required(ErrorMessage = "Total No. of Questions is required")]
-        public required int TotalQuestion { get; set; }
-
-        [Required(ErrorMessage = "Marks per Question is required")]
-        public required int MarksPerQuestion { get; set; }
-
-        [Required(ErrorMessage = "Negative Marks per Question is required")]
-        public required int NegativePerQuestion { get; set; }
-
-        [Required(ErrorMessage = "Total Marks is required")]
-        public required int TotalMarks { get; set; }
-
-        [Required(ErrorMessage = "Minimum Marks is required")]
-        public required int MinMarks { get; set; }
-
         [Required(ErrorMessage = "Winning Amount is required")]
-        public required int WinningAmount { get; set; } = 0;
+        public int? WinningAmount { get; set; } = 0;
 
         [Required(ErrorMessage = "Schedule Date is required")]
         public required DateTime ScheduleDate { get; set; }
