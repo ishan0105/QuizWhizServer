@@ -68,7 +68,7 @@ namespace QuizWhiz.Application.Services
                 Data = _jwtHelper.GenerateJwtToken(user.Email, user.RoleName, user.Username),
                 StatusCode = HttpStatusCode.OK
             };
-            
+
         }
 
         public async Task<ResponseDTO> LoginAdminAsync(LoginUserDTO loginUserDTO)
@@ -144,7 +144,7 @@ namespace QuizWhiz.Application.Services
         {
             var userExists = await _unitOfWork.UserRepository.GetAnyAsync(u => u.Username == checkUsernameDTO.Username);
 
-            if(userExists)
+            if (userExists)
             {
                 return new()
                 {
@@ -199,7 +199,7 @@ namespace QuizWhiz.Application.Services
 
         public async Task<ResponseDTO> ValidateResetTokenAsync(string token)
         {
-            
+
             var decodedToken = Encoding.UTF8.GetString(Convert.FromBase64String(token));
             var parts = decodedToken.Split(':');
             if (parts.Length != 2)

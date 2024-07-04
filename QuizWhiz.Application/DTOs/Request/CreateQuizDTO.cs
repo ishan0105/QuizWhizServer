@@ -38,7 +38,7 @@ namespace QuizWhiz.Application.DTOs.Request
         public required int MinMarks { get; set; }
 
         [Required(ErrorMessage = "Winning Amount is required")]
-        public int? WinningAmount { get; set; } = 0;
+        public required int WinningAmount { get; set; } = 0;
 
         [Required(ErrorMessage = "Schedule Date is required")]
         public required DateTime ScheduleDate { get; set; }

@@ -159,45 +159,6 @@ namespace QuizWhiz.API.Controllers
             return await _quizService.GetQuizDetailsAsync(quizLink);
         }
 
-        [HttpPost("add-quiz-comment")]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(500)]
-        [CustomAuthorize("Admin Contestant")]
-        public async Task<ResponseDTO> AddQuizComment([FromBody] AddQuizCommentDTO addQuizCommentDTO)
-        {
-            if (!ModelState.IsValid)
-            {
-                return new()
-                {
-                    IsSuccess = false,
-                    Message = "Something Went Wrong",
-                    StatusCode = HttpStatusCode.BadRequest
-                };
-            }
-
-            return await _quizService.AddQuizCommentAsync(addQuizCommentDTO);
-        }
-
-        [HttpGet("get-quiz-comments")]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(500)]
-        public async Task<ResponseDTO> GetQuizComments([FromQuery] string quizLink)
-        {
-            if (!ModelState.IsValid)
-            {
-                return new()
-                {
-                    IsSuccess = false,
-                    Message = "Something Went Wrong",
-                    StatusCode = HttpStatusCode.BadRequest
-                };
-            }
-
-            return await _quizService.GetQuizCommentsAsync(quizLink);
-        }
-
         [HttpGet("get-quiz-questions")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
@@ -241,6 +202,7 @@ namespace QuizWhiz.API.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(500)]
+        [CustomAuthorize("Admin")]
         public async Task<ResponseDTO> DeleteQuiz([FromQuery] string quizLink)
         {
             if (!ModelState.IsValid)
