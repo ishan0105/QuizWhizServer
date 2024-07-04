@@ -24,16 +24,12 @@ namespace QuizWhiz.DataAccess.Data
 
         public DbSet<Question> Questions { get; set; }
 
-        public DbSet<Answer> Answers { get; set; }
+        public DbSet<Option> Options { get; set; }
 
         public DbSet<QuestionType> QuestionTypes { get; set; }
-
-        public DbSet<QuizSchedule> QuizSchedules { get; set; }
 
         public DbSet<QuizDifficulty> QuizDifficulties { get; set; }
 
         public DbSet<QuizStatus> QuizStatuses { get; set; }
-
-        public DbSet<QuizComments> QuizComments { get; set; }
     }
 }

@@ -20,13 +20,11 @@ namespace QuizWhiz.DataAccess.Repositories
             UserRoleRepository = new BaseRepository<UserRole>(_context);
             QuestionRepository = new BaseRepository<Question>(_context);
             QuestionTypeRepository = new BaseRepository<QuestionType>(_context);
-            AnswerRepository = new BaseRepository<Answer>(_context);
+            OptionRepository = new BaseRepository<Option>(_context);
             QuizRepository = new BaseRepository<Quiz>(_context);
             QuizCategoryRepository = new BaseRepository<QuizCategory>(_context);
-            QuizScheduleRepository = new BaseRepository<QuizSchedule>(_context);
             QuizDifficultyRepository = new BaseRepository<QuizDifficulty>(_context);
             QuizStatusRepository = new BaseRepository<QuizStatus>(_context);
-            QuizCommentsRepository = new BaseRepository<QuizComments>(_context);
         }
 
         public IBaseRepository<User> UserRepository { get; set; }
@@ -37,19 +35,15 @@ namespace QuizWhiz.DataAccess.Repositories
 
         public IBaseRepository<QuestionType> QuestionTypeRepository { get; set; }
 
-        public IBaseRepository<Answer> AnswerRepository { get; set; }
+        public IBaseRepository<Option> OptionRepository { get; set; }
 
         public IBaseRepository<Quiz> QuizRepository {  get; set; }
 
         public IBaseRepository<QuizCategory> QuizCategoryRepository { get; set; }
 
-        public IBaseRepository<QuizSchedule> QuizScheduleRepository { get; set; }
-
         public IBaseRepository<QuizDifficulty> QuizDifficultyRepository { get; set; }
 
         public IBaseRepository<QuizStatus> QuizStatusRepository { get; set; }
-
-        public IBaseRepository<QuizComments> QuizCommentsRepository { get; set; }
 
         public async Task SaveAsync()
         {

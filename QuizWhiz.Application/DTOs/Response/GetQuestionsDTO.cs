@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using QuizWhiz.Application.DTOs.Request;
 using QuizWhiz.Domain.Entities;
 
 namespace QuizWhiz.Application.DTOs.Response
@@ -17,8 +18,6 @@ namespace QuizWhiz.Application.DTOs.Response
 
         public required string QuestionText { get; set; }
 
-        public List<string>? QuestionOptions { get; set; }
-
-        public List<Answer>? Answers { get; set; }
+        public List<Option>? Options { get; set; }
     }
 }

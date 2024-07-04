@@ -24,8 +24,8 @@ namespace QuizWhiz.Domain.Entities
         public required int CategoryId { get; set; }
 
         [Required]
-        [ForeignKey("ScheduleId")]
-        public required int ScheduleId { get; set; }
+        [Column(TypeName = "timestamp without time zone")]
+        public required DateTime ScheduledDate { get; set; }
 
         [Required]
         public required int TotalQuestion { get; set; }
@@ -46,6 +46,7 @@ namespace QuizWhiz.Domain.Entities
         [ForeignKey("StatusId")]
         public required int StatusId { get; set; }
 
+        [Required]
         public int? WinningAmount { get; set; } = 0;
 
         [Required]
@@ -58,7 +59,6 @@ namespace QuizWhiz.Domain.Entities
         [Required]
         public required int CreatedBy { get; set; }
 
-
         [Column(TypeName = "timestamp without time zone")]
         [Required]
         public required DateTime CreatedDate { get; set; }
@@ -70,12 +70,7 @@ namespace QuizWhiz.Domain.Entities
         [Column(TypeName = "timestamp without time zone")]
         public DateTime? ModifiedDate { get; set; }
 
-        [Required]
-        public bool IsPublished { get; set; } = false;
-
         public QuizCategory Category { get; set; }
-
-        public QuizSchedule Schedule { get; set; }
 
         public QuizDifficulty Difficulty { get; set; }
 
