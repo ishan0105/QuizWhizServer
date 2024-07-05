@@ -29,5 +29,9 @@ namespace QuizWhiz.Application.Interface
         public Task<ResponseDTO> UpdateQuizDetailsAsync(UpdateQuizDetailsDTO updateQuizDetailsDTO);
 
         public Task<ResponseDTO> DeleteQuizAsync(string quizLink);
+
+        public Task<ResponseDTO> UpdateQuizQuestionAsync(UpdateQuestionDetailsDTO updateQuestionDetailsDTO);
+
+        public Task<ResponseDTO> DeleteQuizQuestionAsync(int questionId);
     }
 }
