@@ -217,5 +217,45 @@ namespace QuizWhiz.API.Controllers
 
             return await _quizService.DeleteQuizAsync(quizLink);
         }
+
+        [HttpPost("update-quiz-question")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        [CustomAuthorize("Admin")]
+        public async Task<ResponseDTO> UpdateQuizQuestion([FromBody] UpdateQuestionDetailsDTO updateQuestionDetailsDTO)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Something Went Wrong",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+
+            return await _quizService.UpdateQuizQuestionAsync(updateQuestionDetailsDTO);
+        }
+
+        [HttpGet("delete-quiz-question")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        [CustomAuthorize("Admin")]
+        public async Task<ResponseDTO> DeleteQuizQuestion([FromQuery] int questionId)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Something Went Wrong",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+
+            return await _quizService.DeleteQuizQuestionAsync(questionId);
+        }
     }
 }
