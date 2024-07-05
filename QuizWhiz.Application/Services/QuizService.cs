@@ -392,7 +392,7 @@ namespace QuizWhiz.Application.Services
             var query = (from q in _unitOfWork.QuizRepository.GetTable()
                          join qu in _unitOfWork.QuestionRepository.GetTable() on q.QuizId equals qu.QuizId
                          join a in _unitOfWork.OptionRepository.GetTable() on qu.QuestionId equals a.QuestionId into OptionsGroup
-                         where q.IsDeleted == false
+                         where q.IsDeleted == false && qu.IsDeleted == false
                          && q.QuizLink == quizLink
                          select new
                          {
@@ -451,7 +451,7 @@ namespace QuizWhiz.Application.Services
 
         public async Task<ResponseDTO> UpdateQuizDetailsAsync(UpdateQuizDetailsDTO updateQuizDetailsDTO)
         {
-            Quiz quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(u => u.QuizLink == updateQuizDetailsDTO.QuizLink);
+            Quiz? quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(u => u.QuizLink == updateQuizDetailsDTO.QuizLink);
 
             var token = _jwtHelper.DecodeToken();
             var username = token.Username;
@@ -489,7 +489,7 @@ namespace QuizWhiz.Application.Services
 
         public async Task<ResponseDTO> DeleteQuizAsync(string quizLink)
         {
-            Quiz quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(u => u.QuizLink == quizLink);
+            Quiz? quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(u => u.QuizLink == quizLink);
 
             var token = _jwtHelper.DecodeToken();
             var username = token.Username;
@@ -516,6 +516,81 @@ namespace QuizWhiz.Application.Services
             {
                 IsSuccess = true,
                 Message = "Quiz Deleted successfully!!",
+                StatusCode = HttpStatusCode.OK
+            };
+        }
+
+        public async Task<ResponseDTO> UpdateQuizQuestionAsync(UpdateQuestionDetailsDTO updateQuestionDetailsDTO)
+        {
+            Question? question = await _unitOfWork.QuestionRepository.GetFirstOrDefaultAsync(u => u.QuestionId == updateQuestionDetailsDTO.QuestionId && u.IsDeleted == false);
+
+            var token = _jwtHelper.DecodeToken();
+            var username = token.Username;
+
+            var user = (await _unitOfWork.UserRepository.GetFirstOrDefaultAsync(u => u.Username == username));
+
+            if (question == null || user == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Question not found!!",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            question.QuestionText = updateQuestionDetailsDTO.QuestionText;
+
+            List<Option> options = await _unitOfWork.OptionRepository.GetWhereAsync(u => u.QuestionId == updateQuestionDetailsDTO.QuestionId);
+            options = options.OrderBy(u => u.OptionNo).ToList();
+            
+            if (question.QuestionTypeId == 1 || question.QuestionTypeId == 2)
+            {
+                int count = 0;
+                foreach (var option in options)
+                {
+                    option.OptionText = updateQuestionDetailsDTO.Options.ElementAt(count).OptionText;
+                    option.IsAnswer = updateQuestionDetailsDTO.Options.ElementAt(count).IsAnswer;
+                    count++;
+                }
+            }
+            else if (question.QuestionTypeId == 3)
+            {
+                options.ElementAt(0).IsAnswer = updateQuestionDetailsDTO.IsTrue;
+                options.ElementAt(1).IsAnswer = !updateQuestionDetailsDTO.IsTrue;
+            }
+
+            await _unitOfWork.SaveAsync();
+
+            return new()
+            {
+                IsSuccess = true,
+                Message = "Quiz Question updated successfully!!",
+                StatusCode = HttpStatusCode.OK
+            };
+        }
+
+        public async Task<ResponseDTO> DeleteQuizQuestionAsync(int questionId)
+        {
+            Question? question = await _unitOfWork.QuestionRepository.GetFirstOrDefaultAsync(u => u.QuestionId == questionId && u.IsDeleted == false);
+
+            if (question == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Question not found!!",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            question.IsDeleted = true;
+            await _unitOfWork.SaveAsync();
+
+            return new()
+            {
+                IsSuccess = true,
+                Message = "Quiz Question deleted successfully!!",
                 StatusCode = HttpStatusCode.OK
             };
         }
