@@ -26,6 +26,7 @@ builder.Services.AddScoped<JwtHelper>();
 builder.Services.AddScoped<EmailSenderHelper>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -61,6 +62,8 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod();
     });
 });
+
+builder.Services.AddHostedService<BackgroundWorkerService>();
 
 builder.Services.AddDistributedMemoryCache();
 
