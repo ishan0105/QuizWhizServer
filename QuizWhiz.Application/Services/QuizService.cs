@@ -236,7 +236,7 @@ namespace QuizWhiz.Application.Services
                 if (questionDTO.QuestionTypeId == 1 || questionDTO.QuestionTypeId == 2)
                 {
                     int count = 0;
-                    foreach(var optionList in questionDTO.Options)
+                    foreach (var optionList in questionDTO.Options)
                     {
                         count++;
                         Option option = new()
@@ -482,7 +482,7 @@ namespace QuizWhiz.Application.Services
             quiz.WinningAmount = updateQuizDetailsDTO.WinningAmount;
             quiz.ModifiedBy = user.UserId;
             quiz.ModifiedDate = DateTime.Now;
-            
+
             await _unitOfWork.SaveAsync();
 
             return new()
@@ -549,7 +549,7 @@ namespace QuizWhiz.Application.Services
 
             List<Option> options = await _unitOfWork.OptionRepository.GetWhereAsync(u => u.QuestionId == updateQuestionDetailsDTO.QuestionId);
             options = options.OrderBy(u => u.OptionNo).ToList();
-            
+
             if (question.QuestionTypeId == 1 || question.QuestionTypeId == 2)
             {
                 int count = 0;
@@ -598,6 +598,69 @@ namespace QuizWhiz.Application.Services
                 IsSuccess = true,
                 Message = "Quiz Question deleted successfully!!",
                 StatusCode = HttpStatusCode.OK
+            };
+        }
+
+        public async Task<ResponseDTO> GetSingleQuestion(GetSingleQuestionDTO getSingleQuestionDTO)
+        {
+            Quiz quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(u => u.QuizLink == getSingleQuestionDTO.QuizLink && u.IsDeleted == false && (u.StatusId == 2 || u.StatusId == 3));
+            List<Question> questions = await _unitOfWork.QuestionRepository.GetWhereAsync(u => u.QuizId == quiz.QuizId);
+            Question? singleQuestion = questions.Skip(getSingleQuestionDTO.QuestionCount).Take(1).FirstOrDefault();
+            List<Option> options = await _unitOfWork.OptionRepository.GetWhereAsync(u => u.QuestionId == singleQuestion.QuestionId);
+            if (singleQuestion == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Question not found!!",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            GetQuestionsDTO getQuestionsDTO = new()
+            {
+                QuestionId = singleQuestion.QuestionId,
+                QuestionText = singleQuestion.QuestionText,
+                QuestionTypeId = singleQuestion.QuestionTypeId,
+                QuizId = quiz.QuizId,
+                Options = options
+            };
+            return new()
+            {
+                IsSuccess = true,
+                Message = "Quiz Details fetched successfully!!",
+                Data = getQuestionsDTO,
+                StatusCode = HttpStatusCode.OK
+            };
+        }
+
+        public async Task<ResponseDTO> GetCountOfQuestions(string quizLink)
+        {
+            Quiz? quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(u => u.QuizLink == quizLink);
+            if (quiz == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Quiz not found!!",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+            List<Question> questions = await _unitOfWork.QuestionRepository.GetWhereAsync(u => u.QuizId == quiz.QuizId);
+            if (questions.Count() <= 0) {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Questions not found!!",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+            return new()
+            {
+                IsSuccess = true,
+                Message = "Questions not found!!",
+                Data = questions.Count(),
+                StatusCode = HttpStatusCode.BadRequest,
             };
         }
     }
