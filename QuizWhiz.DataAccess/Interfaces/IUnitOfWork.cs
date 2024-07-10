@@ -22,6 +22,8 @@ namespace QuizWhiz.DataAccess.Interfaces
 
         public IBaseRepository<QuizStatus> QuizStatusRepository {  get; set; }
 
+        public IBaseRepository<QuizParticipants> QuizParticipantsRepository { get; set; }
+
         public Task SaveAsync();
     }
 }
