@@ -257,5 +257,41 @@ namespace QuizWhiz.API.Controllers
 
             return await _quizService.DeleteQuizQuestionAsync(questionId);
         }
+
+        [HttpPost("get-single-quiz-question")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        public async Task<ResponseDTO> GetSingleQuestion([FromBody] GetSingleQuestionDTO getSingleQuestionDTO)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Something Went Wrong",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+            return await _quizService.GetSingleQuestion(getSingleQuestionDTO);
+        }
+
+        [HttpGet("get-count-of-questions")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        public async Task<ResponseDTO> GetCountOfQuestions([FromQuery] string quizLink)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Something Went Wrong",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+            return await _quizService.GetCountOfQuestions(quizLink);
+        }
     }
 }
