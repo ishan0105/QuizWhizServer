@@ -134,6 +134,9 @@ namespace QuizWhiz.Application.Services
                             q.ScheduledDate,
                             q.QuizLink,
                             q.Category.CategoryName,
+                            q.TotalMarks,
+                            q.TotalQuestion,
+                            q.WinningAmount
                         };
 
             var quizzes = await query.ToListAsync().ConfigureAwait(false);
@@ -152,6 +155,9 @@ namespace QuizWhiz.Application.Services
                     DifficultyId = quiz.DifficultyId,
                     QuizLink = quiz.QuizLink,
                     CategoryName = quiz.CategoryName,
+                    TotalMarks = quiz.TotalMarks,
+                    TotalQuestion = quiz.TotalQuestion,
+                    WinningAmount = quiz.WinningAmount
                 };
 
                 getQuizDTOs.Add(getQuizDTO);
@@ -367,7 +373,7 @@ namespace QuizWhiz.Application.Services
                 DifficultyId = quiz.DifficultyId,
                 ScheduledDate = quiz.ScheduledDate,
                 TotalQuestion = quiz.TotalQuestion,
-                MarksPerQuestion = quiz.NegativePerQuestion,
+                MarksPerQuestion = quiz.MarksPerQuestion,
                 WinningAmount = quiz.WinningAmount,
                 CategoryName = quiz.CategoryName,
                 Description = quiz.Description,
@@ -400,7 +406,7 @@ namespace QuizWhiz.Application.Services
                              q.QuizId,
                              qu.QuestionTypeId,
                              qu.QuestionText,
-                             Options = OptionsGroup.ToList()
+                             Options = OptionsGroup.OrderBy(o => o.OptionNo).ToList()
                          });
 
             var quizQuestions = await query.ToListAsync().ConfigureAwait(false);
