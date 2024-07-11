@@ -286,10 +286,10 @@ namespace QuizWhiz.Application.Services
 
         public async Task<ResponseDTO> GetQuizStatusCountAsync()
         {
-            int pendingCount = await _unitOfWork.QuizRepository.CountAsync(u => u.StatusId == 1);
-            int upcomingCount = await _unitOfWork.QuizRepository.CountAsync(u => u.StatusId == 2);
-            int activeCount = await _unitOfWork.QuizRepository.CountAsync(u => u.StatusId == 3);
-            int completedCount = await _unitOfWork.QuizRepository.CountAsync(u => u.StatusId == 4);
+            int pendingCount = await _unitOfWork.QuizRepository.CountAsync(u => u.StatusId == 1 && u.IsDeleted==false);
+            int upcomingCount = await _unitOfWork.QuizRepository.CountAsync(u => u.StatusId == 2 && u.IsDeleted == false);
+            int activeCount = await _unitOfWork.QuizRepository.CountAsync(u => u.StatusId == 3 && u.IsDeleted == false);
+            int completedCount = await _unitOfWork.QuizRepository.CountAsync(u => u.StatusId == 4 && u.IsDeleted == false);
 
             StatusCountDTO statusCountDTO = new()
             {
