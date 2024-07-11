@@ -38,5 +38,7 @@ namespace QuizWhiz.Application.Interface
 
         public Task<ResponseDTO> GetCountOfQuestions(string quizLink);
 
+        public Task<ResponseDTO> GetCorrectAnswer(string quizLink, int questionId);
+
     }
 }

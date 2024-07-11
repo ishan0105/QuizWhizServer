@@ -11,6 +11,8 @@ using QuizWhiz.Domain.Helpers;
 using QuizWhiz.Application.Interfaces;
 using QuizWhiz.Application.Interface;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.AspNetCore.WebSockets;
+using System.Net.WebSockets;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,7 +28,10 @@ builder.Services.AddScoped<JwtHelper>();
 builder.Services.AddScoped<EmailSenderHelper>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddHttpContextAccessor();
-
+builder.Services.AddWebSockets(options =>
+{
+});
+builder.Services.AddSignalR();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -73,6 +78,15 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CorsPolicy",
+        builder => builder
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials()
+            .SetIsOriginAllowed((host) => true)); // For development, allow any origin
+});
 
 builder.Services.AddControllers()
        .AddNewtonsoftJson(options =>
@@ -87,6 +101,9 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.AddControllers();
 
+builder.Services.AddWebSockets(options =>
+{
+});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -104,10 +121,20 @@ else
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-app.UseCors("AllowReactApp");
+/*app.UseCors("AllowReactApp");*/
+/*app.UseCors("AllowAll");*/
+app.UseCors("CorsPolicy");
 app.UseExceptionHandler();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseWebSockets();
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers();
+    endpoints.MapHub<QuizHub>("/quizhub");
+});
+
 app.UseSession();
 app.MapControllers();
 app.Run();
