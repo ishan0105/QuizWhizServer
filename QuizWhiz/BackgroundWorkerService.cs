@@ -1,5 +1,6 @@
 ﻿
 using System.Threading;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using QuizWhiz.Application.Interface;
 using QuizWhiz.DataAccess.Interfaces;
@@ -9,11 +10,13 @@ public class BackgroundWorkerService : BackgroundService
 {
     readonly ILogger<BackgroundWorkerService> _logger;
     private readonly IServiceScopeFactory _scopeFactory;
+    private readonly IHubContext<QuizHub> _hubContext;
 
-    public BackgroundWorkerService(ILogger<BackgroundWorkerService> logger, IServiceScopeFactory scopeFactory)
+    public BackgroundWorkerService(ILogger<BackgroundWorkerService> logger, IServiceScopeFactory scopeFactory, IHubContext<QuizHub> hubContext)
     {
         _logger = logger;
         _scopeFactory = scopeFactory;
+        _hubContext = hubContext;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -51,6 +54,11 @@ public class BackgroundWorkerService : BackgroundService
                     {
                         quiz.StatusId = 4;
                     }
+
+                    if(quiz.ScheduledDate.Subtract(DateTime.Now).TotalMinutes <= 5 && quiz.StatusId == 2)
+                    {
+                        await _hubContext.Clients.All.SendAsync("GetTitleOfQuiz", quiz.Title);
+                    }
                 }
 
                 await _unitOfWork.SaveAsync();
@@ -58,5 +66,5 @@ public class BackgroundWorkerService : BackgroundService
                 await Task.Delay(10000, stoppingToken);
             }
         }
-    }   
+    }
 }

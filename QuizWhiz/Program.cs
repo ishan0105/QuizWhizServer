@@ -129,11 +129,11 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseWebSockets();
 
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapControllers();
-    endpoints.MapHub<QuizHub>("/quizhub");
-});
+//app.UseEndpoints(endpoints =>
+//{
+//    endpoints.MapControllers();
+//    endpoints.MapHub<QuizHub>("/quizhub");
+//});
 
 app.UseSession();
 app.MapControllers();
