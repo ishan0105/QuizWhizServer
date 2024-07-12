@@ -682,7 +682,7 @@ namespace QuizWhiz.Application.Services
                 Data = Data.ScheduledDate,
                 StatusCode = HttpStatusCode.OK,
             };
-
+        }
 
         public async Task<ResponseDTO> GetCorrectAnswer(string quizLink, int questionCount)
         {
@@ -739,7 +739,6 @@ namespace QuizWhiz.Application.Services
                     StatusCode = HttpStatusCode.InternalServerError,
                 };
             }
-
         }
     }
 }
