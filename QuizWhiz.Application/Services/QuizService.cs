@@ -663,5 +663,24 @@ namespace QuizWhiz.Application.Services
                 StatusCode = HttpStatusCode.BadRequest,
             };
         }
+        public async Task<ResponseDTO> GetQuizTime(string QuizLink)
+        {
+            var Data=await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(r=>r.QuizLink==QuizLink);
+            if (Data == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Questions not found!!",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+              return new()
+            {
+                IsSuccess = true,
+                Data = Data.ScheduledDate,
+                StatusCode = HttpStatusCode.OK,
+            };
+        }
     }
 }

@@ -11,21 +11,8 @@ public class QuizHub : Hub
     {
         await Clients.All.SendAsync("ReceiveMessage", user, message);
     }
-    /*[HttpPost("get-single-quiz-question")]
-    [ProducesResponseType(200)]
-    [ProducesResponseType(400)]
-    [ProducesResponseType(500)]
-    public async Task<ResponseDTO> GetSingleQuestion([FromBody] GetSingleQuestionDTO getSingleQuestionDTO)
+    public async Task SendRemainingTime(string contestId, TimeSpan remainingTime)
     {
-        if (!ModelState.IsValid)
-        {
-            return new()
-            {
-                IsSuccess = false,
-                Message = "Something Went Wrong",
-                StatusCode = HttpStatusCode.BadRequest
-            };
-        }
-        return await _quizService.GetSingleQuestion(getSingleQuestionDTO);
-    }*/
+        await Clients.All.SendAsync("ReceiveRemainingTime", contestId, remainingTime);
+    }
 }

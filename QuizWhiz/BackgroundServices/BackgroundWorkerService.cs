@@ -1,5 +1,6 @@
 ﻿
 using System.Threading;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using QuizWhiz.Application.Interface;
 using QuizWhiz.DataAccess.Interfaces;
@@ -58,5 +59,8 @@ public class BackgroundWorkerService : BackgroundService
                 await Task.Delay(10000, stoppingToken);
             }
         }
-    }   
+    }
 }
+
+
+

@@ -69,6 +69,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddHostedService<BackgroundWorkerService>();
+builder.Services.AddHostedService<QuizTimerBackgroundService>();
 
 builder.Services.AddDistributedMemoryCache();
 
