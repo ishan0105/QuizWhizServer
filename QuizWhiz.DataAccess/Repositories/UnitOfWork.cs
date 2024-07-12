@@ -25,6 +25,7 @@ namespace QuizWhiz.DataAccess.Repositories
             QuizCategoryRepository = new BaseRepository<QuizCategory>(_context);
             QuizDifficultyRepository = new BaseRepository<QuizDifficulty>(_context);
             QuizStatusRepository = new BaseRepository<QuizStatus>(_context);
+            QuizParticipantsRepository = new BaseRepository<QuizParticipants>(_context);
         }
 
         public IBaseRepository<User> UserRepository { get; set; }
@@ -44,6 +45,8 @@ namespace QuizWhiz.DataAccess.Repositories
         public IBaseRepository<QuizDifficulty> QuizDifficultyRepository { get; set; }
 
         public IBaseRepository<QuizStatus> QuizStatusRepository { get; set; }
+
+        public IBaseRepository<QuizParticipants> QuizParticipantsRepository { get; set; }
 
         public async Task SaveAsync()
         {

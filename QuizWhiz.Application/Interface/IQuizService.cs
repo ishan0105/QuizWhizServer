@@ -40,5 +40,7 @@ namespace QuizWhiz.Application.Interface
 
         public Task<ResponseDTO> GetCorrectAnswer(string quizLink, int questionId);
 
+        public Task<ResponseDTO> GetQuizTime(string QuizLink);
+
     }
 }
