@@ -286,10 +286,10 @@ namespace QuizWhiz.Application.Services
 
         public async Task<ResponseDTO> GetQuizStatusCountAsync()
         {
-            int pendingCount = await _unitOfWork.QuizRepository.CountAsync(u => u.StatusId == 1);
-            int upcomingCount = await _unitOfWork.QuizRepository.CountAsync(u => u.StatusId == 2);
-            int activeCount = await _unitOfWork.QuizRepository.CountAsync(u => u.StatusId == 3);
-            int completedCount = await _unitOfWork.QuizRepository.CountAsync(u => u.StatusId == 4);
+            int pendingCount = await _unitOfWork.QuizRepository.CountAsync(u => u.StatusId == 1 && u.IsDeleted==false);
+            int upcomingCount = await _unitOfWork.QuizRepository.CountAsync(u => u.StatusId == 2 && u.IsDeleted == false);
+            int activeCount = await _unitOfWork.QuizRepository.CountAsync(u => u.StatusId == 3 && u.IsDeleted == false);
+            int completedCount = await _unitOfWork.QuizRepository.CountAsync(u => u.StatusId == 4 && u.IsDeleted == false);
 
             StatusCountDTO statusCountDTO = new()
             {
@@ -664,6 +664,26 @@ namespace QuizWhiz.Application.Services
             };
         }
 
+        public async Task<ResponseDTO> GetQuizTime(string QuizLink)
+        {
+            var Data=await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(r=>r.QuizLink==QuizLink);
+            if (Data == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Questions not found!!",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+              return new()
+            {
+                IsSuccess = true,
+                Data = Data.ScheduledDate,
+                StatusCode = HttpStatusCode.OK,
+            };
+
+
         public async Task<ResponseDTO> GetCorrectAnswer(string quizLink, int questionCount)
         {
             try
@@ -719,6 +739,7 @@ namespace QuizWhiz.Application.Services
                     StatusCode = HttpStatusCode.InternalServerError,
                 };
             }
+
         }
     }
 }

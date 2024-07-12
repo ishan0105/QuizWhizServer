@@ -29,7 +29,10 @@ namespace QuizWhiz.DataAccess.Data
         public DbSet<QuestionType> QuestionTypes { get; set; }
 
         public DbSet<QuizDifficulty> QuizDifficulties { get; set; }
-
+        
         public DbSet<QuizStatus> QuizStatuses { get; set; }
+
+        public DbSet<QuizParticipants> QuizParticipants { get; set; }
+
     }
 }
