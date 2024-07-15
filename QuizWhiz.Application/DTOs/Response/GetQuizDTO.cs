@@ -35,5 +35,6 @@ namespace QuizWhiz.Application.DTOs.Response
         public DateTime ScheduledDate { get; set; }
 
         public string? QuizLink { get; set; } = null;
+        public string Status { get; set; } = null;
     }
 }

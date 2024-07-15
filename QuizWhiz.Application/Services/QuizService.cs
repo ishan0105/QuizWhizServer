@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using System.Buffers;
 using Microsoft.Extensions.Options;
+using Microsoft.VisualBasic.FileIO;
 
 namespace QuizWhiz.Application.Services
 {
@@ -684,61 +685,92 @@ namespace QuizWhiz.Application.Services
             };
         }
 
-        public async Task<ResponseDTO> GetCorrectAnswer(string quizLink, int questionCount)
+        public async Task<List<KeyValuePair<int, string>>> GetActiveQuizzes()
         {
-            try
+            var QuizTable = _unitOfWork.QuizRepository.GetTable();
+            List<KeyValuePair<int,string>> activeQuizzes = new List<KeyValuePair<int, string>>();
+            foreach(var Quiz in QuizTable)
             {
-                Quiz quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(u => u.QuizLink == quizLink && u.IsDeleted == false && (u.StatusId == 2 || u.StatusId == 3));
-                if (quiz == null)
+                if(Quiz.StatusId == 3)
                 {
-                    return new ResponseDTO
-                    {
-                        IsSuccess = false,
-                        Message = "Quiz not found!!",
-                        StatusCode = HttpStatusCode.BadRequest,
-                    };
+                    activeQuizzes.Add(new KeyValuePair<int, string>(3,Quiz.QuizLink!));
                 }
-                List<Question> questions = await _unitOfWork.QuestionRepository.GetWhereAsync(u => u.QuizId == quiz.QuizId);
-                Question? singleQuestion = questions.Skip(questionCount).Take(1).FirstOrDefault();
-                if (singleQuestion == null)
-                {
-                    return new ResponseDTO
-                    {
-                        IsSuccess = false,
-                        Message = "Question not found!!",
-                        StatusCode = HttpStatusCode.BadRequest,
-                    };
+                else if(Quiz.StatusId == 4) {
+                    activeQuizzes.Add(new KeyValuePair<int, string>(4, Quiz.QuizLink!));
                 }
 
-                Option answer = await _unitOfWork.OptionRepository.GetFirstOrDefaultAsync(u => u.QuestionId == singleQuestion.QuestionId && u.IsAnswer == true);
-                if (answer == null)
-                {
-                    return new ResponseDTO
-                    {
-                        IsSuccess = false,
-                        Message = "Answer not found!!",
-                        StatusCode = HttpStatusCode.BadRequest,
-                    };
-                }
-
-                return new ResponseDTO
-                {
-                    IsSuccess = true,
-                    Message = "Quiz Details fetched successfully!!",
-                    Data = answer.OptionText,
-                    StatusCode = HttpStatusCode.OK
-                };
             }
-            catch (Exception ex)
+
+            return activeQuizzes;
+        }
+        public async Task<ResponseDTO> GetAllQuestions(string QuizLink)
+        {
+            if (QuizLink == null)
             {
-                Console.WriteLine($"Error in GetCorrectAnswer: {ex.Message}");
-                return new ResponseDTO
+                return new()
                 {
                     IsSuccess = false,
-                    Message = "An error occurred on the server.",
-                    StatusCode = HttpStatusCode.InternalServerError,
+                    Message = "Questions not found!!",
+                    StatusCode = HttpStatusCode.BadRequest,
+                    Data = null,
                 };
             }
+            Quiz? CurrentQuiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(r => r.QuizLink == QuizLink);
+            if(CurrentQuiz == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Questions not found!!",
+                    StatusCode = HttpStatusCode.BadRequest,
+                    Data=null
+                };
+            }
+            List<Question> Questions =await _unitOfWork.QuestionRepository.GetWhereAsync(r => r.QuizId ==CurrentQuiz!.QuizId);
+            List<GetQuestionsDTO> getAllQuestions=new List<GetQuestionsDTO>();
+             
+            foreach (var Question in Questions)
+            {
+                List<Option> Options = await _unitOfWork.OptionRepository.GetWhereAsync(r => r.QuestionId == Question.QuestionId);
+                GetQuestionsDTO getQuestionsDTO = new()
+                {
+                    Question= Question,
+                    QuestionTypeId=Question.QuestionTypeId,
+                    QuestionText= Question.QuestionText,
+                    QuizId=Question.QuizId,
+                    QuestionId=Question.QuestionId,
+                    Options=Options
+                };
+                getAllQuestions.Add(getQuestionsDTO);
+            }
+            return new()
+            {
+                IsSuccess = true,
+                Data = getAllQuestions,
+                StatusCode = HttpStatusCode.OK,
+            };
+        }
+
+        public async Task<ResponseDTO> GetCorrectAnswer(int id)
+        {
+            if(id == 0)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Questions not found!!",
+                    StatusCode = HttpStatusCode.BadRequest,
+                    Data = null
+                };
+            }
+            Option option = await _unitOfWork.OptionRepository.GetFirstOrDefaultAsync(o => o.QuestionId == id && o.IsAnswer == true);
+            return new()
+            {
+                IsSuccess = true,
+                Message = "Correct option found",
+                StatusCode = HttpStatusCode.OK,
+                Data = option
+            };
         }
     }
 }

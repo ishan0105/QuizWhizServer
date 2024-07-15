@@ -2,6 +2,7 @@
 using System.Net.WebSockets;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using QuizWhiz.Application.DTOs.Request;
 using QuizWhiz.Application.DTOs.Response;
 using QuizWhiz.Application.Interface;
@@ -51,6 +52,7 @@ namespace QuizWhiz.API.Controllers
         [ProducesResponseType(400)]
         [ProducesResponseType(500)]
         //[CustomAuthorize("Admin")]
+            
         public async Task<ResponseDTO> GetQuizzesFilter([FromBody] GetQuizFilterDTO getQuizFilterDTO)
         {
             if (!ModelState.IsValid)
@@ -62,7 +64,6 @@ namespace QuizWhiz.API.Controllers
                     StatusCode = HttpStatusCode.BadRequest
                 };
             }
-
             return await _quizService.GetQuizzesFilterAsync(getQuizFilterDTO);
         }
 
