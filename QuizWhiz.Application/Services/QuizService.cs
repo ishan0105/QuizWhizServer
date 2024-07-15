@@ -1,3 +1,4 @@
+
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +21,6 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using System.Buffers;
 using Microsoft.Extensions.Options;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace QuizWhiz.Application.Services
 {
@@ -137,8 +137,7 @@ namespace QuizWhiz.Application.Services
                             q.Category.CategoryName,
                             q.TotalMarks,
                             q.TotalQuestion,
-                            q.WinningAmount,
-                            q.Status.StatusName
+                            q.WinningAmount
                         };
 
             var quizzes = await query.ToListAsync().ConfigureAwait(false);
@@ -159,8 +158,7 @@ namespace QuizWhiz.Application.Services
                     CategoryName = quiz.CategoryName,
                     TotalMarks = quiz.TotalMarks,
                     TotalQuestion = quiz.TotalQuestion,
-                    WinningAmount = quiz.WinningAmount,
-                    Status = quiz.StatusName
+                    WinningAmount = quiz.WinningAmount
                 };
 
                 getQuizDTOs.Add(getQuizDTO);
@@ -484,6 +482,7 @@ namespace QuizWhiz.Application.Services
             quiz.DifficultyId = updateQuizDetailsDTO.DifficultyId;
             quiz.WinningAmount = updateQuizDetailsDTO.WinningAmount;
             quiz.ModifiedBy = user.UserId;
+
             quiz.ModifiedDate = DateTime.Now;
 
             await _unitOfWork.SaveAsync();
@@ -666,6 +665,7 @@ namespace QuizWhiz.Application.Services
                 StatusCode = HttpStatusCode.BadRequest,
             };
         }
+
         public async Task<ResponseDTO> GetQuizTime(string QuizLink)
         {
             var Data=await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(r=>r.QuizLink==QuizLink);
@@ -772,5 +772,63 @@ namespace QuizWhiz.Application.Services
                 Data = option
             };
         }
+       /* public async Task<ResponseDTO> GetCorrectAnswer(string quizLink, int questionCount)
+        {
+            try
+            {
+                Quiz quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(u => u.QuizLink == quizLink && u.IsDeleted == false && (u.StatusId == 2 || u.StatusId == 3));
+                if (quiz == null)
+                {
+                    return new ResponseDTO
+                    {
+                        IsSuccess = false,
+                        Message = "Quiz not found!!",
+                        StatusCode = HttpStatusCode.BadRequest,
+                    };
+                }
+                List<Question> questions = await _unitOfWork.QuestionRepository.GetWhereAsync(u => u.QuizId == quiz.QuizId);
+                Question? singleQuestion = questions.Skip(questionCount).Take(1).FirstOrDefault();
+                if (singleQuestion == null)
+                {
+                    return new ResponseDTO
+                    {
+                        IsSuccess = false,
+                        Message = "Question not found!!",
+                        StatusCode = HttpStatusCode.BadRequest,
+                    };
+                }
+
+                Option answer = await _unitOfWork.OptionRepository.GetFirstOrDefaultAsync(u => u.QuestionId == singleQuestion.QuestionId && u.IsAnswer == true);
+                if (answer == null)
+                {
+                    return new ResponseDTO
+                    {
+                        IsSuccess = false,
+                        Message = "Answer not found!!",
+                        StatusCode = HttpStatusCode.BadRequest,
+                    };
+                }
+
+                return new ResponseDTO
+                {
+                    IsSuccess = true,
+                    Message = "Quiz Details fetched successfully!!",
+                    Data = answer.OptionText,
+                    StatusCode = HttpStatusCode.OK
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetCorrectAnswer: {ex.Message}");
+                return new ResponseDTO
+                {
+                    IsSuccess = false,
+                    Message = "An error occurred on the server.",
+                    StatusCode = HttpStatusCode.InternalServerError,
+                };
+            }
+
+        }*/
     }
 }
+

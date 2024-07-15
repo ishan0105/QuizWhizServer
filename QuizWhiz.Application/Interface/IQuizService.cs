@@ -40,6 +40,7 @@ namespace QuizWhiz.Application.Interface
 
         public Task<ResponseDTO> GetCountOfQuestions(string quizLink);
 
+
         public Task<List<KeyValuePair<int, string>>> GetActiveQuizzes();
 
         public Task<ResponseDTO> GetAllQuestions(string QuizLink);
