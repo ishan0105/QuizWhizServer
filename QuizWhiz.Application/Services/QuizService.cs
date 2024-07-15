@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using System.Buffers;
 using Microsoft.Extensions.Options;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace QuizWhiz.Application.Services
 {
@@ -136,7 +137,8 @@ namespace QuizWhiz.Application.Services
                             q.Category.CategoryName,
                             q.TotalMarks,
                             q.TotalQuestion,
-                            q.WinningAmount
+                            q.WinningAmount,
+                            q.Status.StatusName
                         };
 
             var quizzes = await query.ToListAsync().ConfigureAwait(false);
@@ -157,7 +159,8 @@ namespace QuizWhiz.Application.Services
                     CategoryName = quiz.CategoryName,
                     TotalMarks = quiz.TotalMarks,
                     TotalQuestion = quiz.TotalQuestion,
-                    WinningAmount = quiz.WinningAmount
+                    WinningAmount = quiz.WinningAmount,
+                    Status = quiz.StatusName
                 };
 
                 getQuizDTOs.Add(getQuizDTO);
@@ -680,6 +683,93 @@ namespace QuizWhiz.Application.Services
                 IsSuccess = true,
                 Data = Data.ScheduledDate,
                 StatusCode = HttpStatusCode.OK,
+            };
+        }
+        public async Task<List<KeyValuePair<int, string>>> GetActiveQuizzes()
+        {
+            var QuizTable = _unitOfWork.QuizRepository.GetTable();
+            List<KeyValuePair<int,string>> activeQuizzes = new List<KeyValuePair<int, string>>();
+            foreach(var Quiz in QuizTable)
+            {
+                if(Quiz.StatusId == 3)
+                {
+                    activeQuizzes.Add(new KeyValuePair<int, string>(3,Quiz.QuizLink!));
+                }
+                else if(Quiz.StatusId == 4) {
+                    activeQuizzes.Add(new KeyValuePair<int, string>(4, Quiz.QuizLink!));
+                }
+
+            }
+
+            return activeQuizzes;
+        }
+        public async Task<ResponseDTO> GetAllQuestions(string QuizLink)
+        {
+            if (QuizLink == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Questions not found!!",
+                    StatusCode = HttpStatusCode.BadRequest,
+                    Data = null,
+                };
+            }
+            Quiz? CurrentQuiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(r => r.QuizLink == QuizLink);
+            if(CurrentQuiz == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Questions not found!!",
+                    StatusCode = HttpStatusCode.BadRequest,
+                    Data=null
+                };
+            }
+            List<Question> Questions =await _unitOfWork.QuestionRepository.GetWhereAsync(r => r.QuizId ==CurrentQuiz!.QuizId);
+            List<GetQuestionsDTO> getAllQuestions=new List<GetQuestionsDTO>();
+             
+            foreach (var Question in Questions)
+            {
+                List<Option> Options = await _unitOfWork.OptionRepository.GetWhereAsync(r => r.QuestionId == Question.QuestionId);
+                GetQuestionsDTO getQuestionsDTO = new()
+                {
+                    Question= Question,
+                    QuestionTypeId=Question.QuestionTypeId,
+                    QuestionText= Question.QuestionText,
+                    QuizId=Question.QuizId,
+                    QuestionId=Question.QuestionId,
+                    Options=Options
+                };
+                getAllQuestions.Add(getQuestionsDTO);
+            }
+            return new()
+            {
+                IsSuccess = true,
+                Data = getAllQuestions,
+                StatusCode = HttpStatusCode.OK,
+            };
+        }
+
+        public async Task<ResponseDTO> GetCorrectAnswer(int id)
+        {
+            if(id == 0)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Questions not found!!",
+                    StatusCode = HttpStatusCode.BadRequest,
+                    Data = null
+                };
+            }
+            Option option = await _unitOfWork.OptionRepository.GetFirstOrDefaultAsync(o => o.QuestionId == id && o.IsAnswer == true);
+            return new()
+            {
+                IsSuccess = true,
+                Message = "Correct option found",
+                StatusCode = HttpStatusCode.OK,
+                Data = option
             };
         }
     }
