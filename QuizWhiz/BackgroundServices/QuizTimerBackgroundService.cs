@@ -1,5 +1,4 @@
-﻿
-using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using QuizWhiz.Application.Interface;
@@ -38,15 +37,16 @@ public class QuizTimerBackgroundService : BackgroundService
                     var currentTime = DateTime.Now;
                     var remainingTime = contestStartTime - currentTime;
 
-                    if (remainingTime <= TimeSpan.Zero)
+                    if (remainingTime <= TimeSpan.FromMinutes(5))
                     {
-                        break;
+                        var runnningQuizService = scope.ServiceProvider.GetRequiredService<RunningQuizService>();
+                        await runnningQuizService.StartSendingQuizTitle(stoppingToken); 
                     }
 
-                    if (currentTime >= notifyTime)
-                    {
-                        await _hubContext.Clients.All.SendAsync("ReceiveRemainingTime", "0GgfW7eG", remainingTime);
-                    }
+                    //if (currentTime >= notifyTime)
+                    //{
+                    //    await _hubContext.Clients.All.SendAsync("ReceiveRemainingTime", "0GgfW7eG", remainingTime);
+                    //}
 
                     await Task.Delay(1000, stoppingToken);
                 }
