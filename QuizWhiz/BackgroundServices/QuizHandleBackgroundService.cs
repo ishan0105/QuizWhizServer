@@ -18,20 +18,20 @@ public class QuizHandleBackgroundService : BackgroundService
     private readonly QuizServiceManager _quizServiceManager;
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly IHubContext<QuizHub> _hubContext;
-    private readonly string _quizId;
+    private readonly string _quizLink;
     public DateTime QuizScheduleTime = DateTime.Now;
-    private int TimerSeconds=0;
+    private int TimerSeconds = 0;
     private bool Timer = true;
     private bool IsMethodRunnigFistTime = false;
     public List<GetQuestionsDTO> _questions;
-    public int QuestionNo=0;
-    public QuizHandleBackgroundService(ILogger<QuizHandleBackgroundService> logger, string quizId, IServiceScopeFactory serviceScopeFactory, IHubContext<QuizHub> hubContext, QuizServiceManager quizServiceManager)
+    public int QuestionNo = 0;
+    public QuizHandleBackgroundService(ILogger<QuizHandleBackgroundService> logger, string quizLink, IServiceScopeFactory serviceScopeFactory, IHubContext<QuizHub> hubContext, QuizServiceManager quizServiceManager)
     {
         _logger = logger;
-        _quizId = quizId;
+        _quizLink = quizLink;
         _serviceScopeFactory = serviceScopeFactory;
         _hubContext = hubContext;
-        _quizServiceManager = quizServiceManager;   
+        _quizServiceManager = quizServiceManager;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -39,7 +39,7 @@ public class QuizHandleBackgroundService : BackgroundService
         /*_logger.LogInformation("Quiz {QuizId} BackgroundService is starting.", _quizId);*/
 
         while (!stoppingToken.IsCancellationRequested)
-        { 
+        {
             /*_logger.LogInformation("Quiz {QuizId} is active.", _quizId);*/
             using (var scope = _serviceScopeFactory.CreateScope())
             {
@@ -47,24 +47,24 @@ public class QuizHandleBackgroundService : BackgroundService
                 {
                     IsMethodRunnigFistTime = true;
                     var quizService = scope.ServiceProvider.GetRequiredService<IQuizService>();
-                    var Questions = await quizService.GetAllQuestions(_quizId);
-                    var ContestTime = await quizService.GetQuizTime(_quizId);
+                    var Questions = await quizService.GetAllQuestions(_quizLink);
+                    var ContestTime = await quizService.GetQuizTime(_quizLink);
                     DateTime ContestStartTime = (DateTime)ContestTime.Data;
                     QuizScheduleTime = ContestStartTime;
                     if (QuizScheduleTime <= DateTime.Now)
                     {
                         Timer = false;
                         var CurrentQuiz = ContestStartTime.Second - DateTime.Now.Second;
-                        double QuizNo = Math.Ceiling(CurrentQuiz*1.0 / 20.0);
-                        QuestionNo =(int) Math.Round(QuizNo)-1;
+                        double QuizNo = Math.Ceiling(CurrentQuiz * 1.0 / 20.0);
+                        QuestionNo = (int)Math.Round(QuizNo) - 1;
                         var CurrentSecond = CurrentQuiz % 20;
-                        TimerSeconds = CurrentSecond==0 ? 20 : CurrentSecond;
+                        TimerSeconds = CurrentSecond == 0 ? 20 : CurrentSecond;
                         --TimerSeconds;
                     }
                     else
                     {
                         var RemainingTimerSeconds = QuizScheduleTime - DateTime.Now;
-                        TimerSeconds = 300-(int)RemainingTimerSeconds.TotalSeconds;
+                        TimerSeconds = 300 - (int)RemainingTimerSeconds.TotalSeconds;
                         --TimerSeconds;
                     }
                     _questions = Questions.Data as List<GetQuestionsDTO>;
@@ -90,51 +90,55 @@ public class QuizHandleBackgroundService : BackgroundService
             }
             if (Timer)
             {
-                DateTime notifyTime = QuizScheduleTime.AddMinutes(-5);
+                DateTime notifyTime = QuizScheduleTime.AddSeconds(-300);
                 var currentTime = DateTime.Now;
                 var remainingTime = QuizScheduleTime - currentTime;
                 if (currentTime >= notifyTime)
                 {
-                    await _hubContext.Clients.All.SendAsync($"ReceiveRemainingTime_{_quizId}", remainingTime.Minutes,remainingTime.Seconds);
+                    await _hubContext.Clients.All.SendAsync($"ReceiveRemainingTime_{_quizLink}", remainingTime.Minutes, remainingTime.Seconds);
                 }
             }
             else
             {
                 if (QuestionNo >= _questions.Count || QuestionNo < 0)
                 {
-                    _quizServiceManager.StopQuizService(_quizId);
-                    return ;
+                    _quizServiceManager.StopQuizService(_quizLink);
+                    return;
                 }
-                
+
                 var Question = _questions.ElementAt(QuestionNo);
                 var quizService = scope.ServiceProvider.GetRequiredService<IQuizService>();
-                var CorrectAnswer=await quizService.GetCorrectAnswer(Question.QuestionId);
-                List<string>options= new List<string>();
-                foreach(var ele in Question.Options)
+                var CorrectAnswer = await quizService.GetCorrectAnswer(Question.QuestionId);
+                List<string> options = new List<string>();
+                foreach (var ele in Question.Options)
                 {
                     options.Add(ele.OptionText!.ToString());
                 }
                 SendQuestionDTO sendQuestionDTO = new SendQuestionDTO()
                 {
-                    Question=Question.Question,
-                    Options=options
+                    Question = Question.Question,
+                    Options = options
                 };
-                if (TimerSeconds <=16)
+                if (TimerSeconds == 1)
                 {
-                    await _hubContext.Clients.All.SendAsync($"ReceiveQuestion_{_quizId}",QuestionNo + 1, sendQuestionDTO, TimerSeconds);
+                    await _hubContext.Clients.All.SendAsync($"ReceiveQuestion_{_quizLink}", QuestionNo + 1, sendQuestionDTO, TimerSeconds);
                 }
-                else if(TimerSeconds>=17 && TimerSeconds<20)
+                else if (TimerSeconds == 17)
                 {
-                    await _hubContext.Clients.All.SendAsync($"ReceiveAnswer_{_quizId}", QuestionNo + 1, CorrectAnswer.Data, TimerSeconds);
+                    await _hubContext.Clients.All.SendAsync($"ReceiveAnswer_{_quizLink}", QuestionNo + 1, CorrectAnswer.Data, TimerSeconds);
                 }
-                else if(TimerSeconds==20)
+                else if ((TimerSeconds > 1 && TimerSeconds < 17) || TimerSeconds > 17)
                 {
-                    TimerSeconds = 0;
-                    await _hubContext.Clients.All.SendAsync($"ReceiveAnswer_{_quizId}", QuestionNo + 1, CorrectAnswer, TimerSeconds);
-                    ++QuestionNo;
+                    await _hubContext.Clients.All.SendAsync($"ReceiveTimerSeconds{_quizLink}", TimerSeconds);
+                    if (TimerSeconds == 20)
+                    {
+                        TimerSeconds = 0;
+                        ++QuestionNo;
+                    }
                 }
+
             }
-      }
+        }
     }
-  
+
 }
