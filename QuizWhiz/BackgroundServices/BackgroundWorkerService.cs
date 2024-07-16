@@ -42,7 +42,7 @@ public class BackgroundWorkerService : BackgroundService
                 foreach (var quiz in quizzes)
                 {
                   
-                    if (DateTime.Now >= quiz.ScheduledDate.AddMinutes(-5) && quiz.StatusId == 2)
+                    if (DateTime.Now >= quiz.ScheduledDate.AddSeconds(-300) && quiz.StatusId == 2)
                     {
                         quiz.StatusId = 3;
                     }

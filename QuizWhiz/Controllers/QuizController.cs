@@ -201,6 +201,26 @@ namespace QuizWhiz.API.Controllers
             return await _quizService.UpdateQuizDetailsAsync(updateQuizDetailsDTO);
         }
 
+        [HttpGet("publish-quiz")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        [CustomAuthorize("Admin")]
+        public async Task<ResponseDTO> PublishQuiz([FromQuery] string quizLink)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Something Went Wrong",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+
+            return await _quizService.PublishQuizAsync(quizLink);
+        }
+
         [HttpGet("delete-quiz")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]

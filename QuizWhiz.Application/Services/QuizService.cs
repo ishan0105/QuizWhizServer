@@ -494,6 +494,33 @@ namespace QuizWhiz.Application.Services
             };
         }
 
+        public async Task<ResponseDTO> PublishQuizAsync(string quizLink)
+        {
+            Quiz? quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(u => u.QuizLink == quizLink);
+
+            if (quiz == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "QuizLink is Invalid!!",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            quiz.StatusId = 2;
+            quiz.ModifiedDate = DateTime.Now;
+
+            await _unitOfWork.SaveAsync();
+
+            return new()
+            {
+                IsSuccess = true,
+                Message = "Quiz Published successfully!!",
+                StatusCode = HttpStatusCode.OK
+            };
+        }
+
         public async Task<ResponseDTO> DeleteQuizAsync(string quizLink)
         {
             Quiz? quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(u => u.QuizLink == quizLink);
