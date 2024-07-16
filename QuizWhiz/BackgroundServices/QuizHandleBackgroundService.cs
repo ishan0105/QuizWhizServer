@@ -20,7 +20,6 @@ public class QuizHandleBackgroundService : BackgroundService
     private readonly IHubContext<QuizHub> _hubContext;
     private readonly string _quizId;
     public DateTime QuizScheduleTime = DateTime.Now;
-    /*private Timer _timer;*/
     private int TimerSeconds=0;
     private bool Timer = true;
     private bool IsMethodRunnigFistTime = false;
@@ -101,11 +100,12 @@ public class QuizHandleBackgroundService : BackgroundService
             }
             else
             {
-                if (QuestionNo >= _questions.Count)
+                if (QuestionNo >= _questions.Count || QuestionNo < 0)
                 {
                     _quizServiceManager.StopQuizService(_quizId);
                     return ;
                 }
+                
                 var Question = _questions.ElementAt(QuestionNo);
                 var quizService = scope.ServiceProvider.GetRequiredService<IQuizService>();
                 var CorrectAnswer=await quizService.GetCorrectAnswer(Question.QuestionId);
