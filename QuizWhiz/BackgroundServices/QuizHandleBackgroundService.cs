@@ -23,7 +23,7 @@ public class QuizHandleBackgroundService : BackgroundService
     private int TimerSeconds = 0;
     private bool Timer = true;
     private bool IsMethodRunnigFistTime = false;
-    public List<GetQuestionsDTO> _questions;
+    public List<GetQuestionsDTO> _questions=new List<GetQuestionsDTO>();
     public int QuestionNo = 0;
     public QuizHandleBackgroundService(ILogger<QuizHandleBackgroundService> logger, string quizLink, IServiceScopeFactory serviceScopeFactory, IHubContext<QuizHub> hubContext, QuizServiceManager quizServiceManager)
     {
@@ -51,13 +51,14 @@ public class QuizHandleBackgroundService : BackgroundService
                     var ContestTime = await quizService.GetQuizTime(_quizLink);
                     DateTime ContestStartTime = (DateTime)ContestTime.Data;
                     QuizScheduleTime = ContestStartTime;
+
                     if (QuizScheduleTime <= DateTime.Now)
                     {
                         Timer = false;
-                        var CurrentQuiz = ContestStartTime.Second - DateTime.Now.Second;
-                        double QuizNo = Math.Ceiling(CurrentQuiz * 1.0 / 20.0);
-                        QuestionNo = (int)Math.Round(QuizNo) - 1;
-                        var CurrentSecond = CurrentQuiz % 20;
+                        var CurrentQuiz =  DateTime.Now- ContestStartTime ;
+                        double QuizNo = Math.Ceiling(CurrentQuiz.Seconds * 1.0 / 20.0);
+                        QuestionNo = (int)QuizNo - 1;
+                        var CurrentSecond = CurrentQuiz.Seconds % 20;
                         TimerSeconds = CurrentSecond == 0 ? 20 : CurrentSecond;
                         --TimerSeconds;
                     }
@@ -67,7 +68,10 @@ public class QuizHandleBackgroundService : BackgroundService
                         TimerSeconds = 300 - (int)RemainingTimerSeconds.TotalSeconds;
                         --TimerSeconds;
                     }
-                    _questions = Questions.Data as List<GetQuestionsDTO>;
+                    if (Questions != null)
+                    {
+                        _questions = Questions.Data as List<GetQuestionsDTO>;
+                    }
                 }
                 QuizHandleMethod(null);
                 /*_timer = new Timer(QuizHandleMethod, null, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(1));*/
@@ -76,6 +80,7 @@ public class QuizHandleBackgroundService : BackgroundService
         }
         /*_logger.LogInformation("Quiz {QuizId} BackgroundService is stopping.", _quizId);*/
     }
+
     private async void QuizHandleMethod(object state)
     {
         using (var scope = _serviceScopeFactory.CreateScope())
@@ -93,9 +98,11 @@ public class QuizHandleBackgroundService : BackgroundService
                 DateTime notifyTime = QuizScheduleTime.AddSeconds(-300);
                 var currentTime = DateTime.Now;
                 var remainingTime = QuizScheduleTime - currentTime;
+                var remainingMinutes = remainingTime.Minutes.ToString("00");
+                var remainingSeconds = remainingTime.Seconds.ToString("00");
                 if (currentTime >= notifyTime)
                 {
-                    await _hubContext.Clients.All.SendAsync($"ReceiveRemainingTime_{_quizLink}", remainingTime.Minutes, remainingTime.Seconds);
+                    await _hubContext.Clients.All.SendAsync($"ReceiveRemainingTime_{_quizLink}", remainingMinutes, remainingSeconds);
                 }
             }
             else
