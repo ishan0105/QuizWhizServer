@@ -65,7 +65,7 @@ public class QuizHandleBackgroundService : BackgroundService
                     else
                     {
                         var RemainingTimerSeconds = QuizScheduleTime - DateTime.Now;
-                        TimerSeconds = 300-(int)RemainingTimerSeconds.TotalSeconds+1;
+                        TimerSeconds = 300-(int)RemainingTimerSeconds.TotalSeconds;
                         --TimerSeconds;
                     }
                     _questions = Questions.Data as List<GetQuestionsDTO>;
