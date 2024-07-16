@@ -19,5 +19,7 @@ namespace QuizWhiz.DataAccess.Interfaces
         public Task CreateAsync(T entity);
         
         public Task<int> CountAsync(Expression<Func<T, bool>> predicate);
+
+        //public Task<List<T>> GetWhereOrderByAsync(Expression<Func<T, bool>> predicate, Expression<Func<T, object>> orderByExpression);
     }
 }

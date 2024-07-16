@@ -10,8 +10,8 @@ namespace QuizWhiz.Application.DTOs.Response
 {
     public class GetQuestionsDTO
     {
+        public Question ?Question { get; set; }
         public int QuestionId { get; set; }
-
         public required int QuizId { get; set; }
 
         public required int QuestionTypeId { get; set; }
@@ -19,5 +19,6 @@ namespace QuizWhiz.Application.DTOs.Response
         public required string QuestionText { get; set; }
 
         public List<Option>? Options { get; set; }
+
     }
 }

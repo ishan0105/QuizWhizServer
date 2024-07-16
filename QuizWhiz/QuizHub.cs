@@ -3,63 +3,29 @@ using Microsoft.AspNetCore.SignalR;
 using QuizWhiz.Application.DTOs.Request;
 using QuizWhiz.Application.DTOs.Response;
 using QuizWhiz.Application.Interface;
+using QuizWhiz.Application.Services;
+using QuizWhiz.Domain.Entities;
 using System.Net;
 using System.Net.WebSockets;
 
 public class QuizHub : Hub
 {
     private readonly IQuizService _quizService;
-
-    public QuizHub(IQuizService quizService)
+    public QuizHub(QuizService quizService)
     {
         _quizService = quizService;
     }
-
-    public async Task GetNewQuestion(string quizLink, int questionCount)
+    public async Task SendMessage( string message)
     {
-        GetSingleQuestionDTO getSingleQuestionDTO = new GetSingleQuestionDTO
-        {
-            QuizLink = quizLink,
-            QuestionCount = questionCount
-        };
-
-        var response = await _quizService.GetSingleQuestion(getSingleQuestionDTO);
-        if (response.IsSuccess)
-        {
-            await Clients.Caller.SendAsync("ReceiveQuestion", response.Data);
-        }
-        else
-        {
-            response.Message = "Question does not exists";
-            await Clients.Caller.SendAsync("ReceiveError", response.Message);
-        }
+        await Clients.All.SendAsync("ReceiveMessage", message);
     }
-
-    public async Task GetCorrectAnswer(string quizLink, int questionCount)
+    public async Task SendAnswer(string user,int ans)
     {
-        try
-        {
-            var response = await _quizService.GetCorrectAnswer(quizLink, questionCount);
-            if (response.IsSuccess)
-            {
-                await Clients.Caller.SendAsync("ReceiveCorrectAnswer", response.Data);
-            }
-            else
-            {
-                response.Message = "Correct answer not found";
-                await Clients.Caller.SendAsync("ReceiveError", response.Message);
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error in GetCorrectAnswer: {ex.Message}");
-            await Clients.Caller.SendAsync("ReceiveError", "An error occurred on the server.");
-        }
+        await Clients.All.SendAsync("ReceiveResponse", true);
     }
-
-    public async Task GetQuizTitle(string title)
+    public async Task CheckQuizAnswer(string quizLink, string userName, bool isAns)
     {
-        await Clients.All.SendAsync("GetTitleOfQuiz", title);
+        await _quizService.CheckQuizAnswer(quizLink, userName, isAns);
+        await Clients.All.SendAsync("ReceiveCorrectAnswerMessage", true);
     }
-
 }
