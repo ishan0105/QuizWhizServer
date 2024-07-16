@@ -20,9 +20,9 @@ public class QuizHandleBackgroundService : BackgroundService
     private readonly IHubContext<QuizHub> _hubContext;
     private readonly string _quizId;
     public DateTime QuizScheduleTime = DateTime.Now;
-    /*private Timer _timer;*/
     private int TimerSeconds=0;
     private bool Timer = true;
+    private bool IsMethodRunnigFistTime = false;
     public List<GetQuestionsDTO> _questions;
     public int QuestionNo=0;
     public QuizHandleBackgroundService(ILogger<QuizHandleBackgroundService> logger, string quizId, IServiceScopeFactory serviceScopeFactory, IHubContext<QuizHub> hubContext, QuizServiceManager quizServiceManager)
@@ -43,13 +43,30 @@ public class QuizHandleBackgroundService : BackgroundService
             /*_logger.LogInformation("Quiz {QuizId} is active.", _quizId);*/
             using (var scope = _serviceScopeFactory.CreateScope())
             {
-                if (TimerSeconds == 0)
+                if (!IsMethodRunnigFistTime)
                 {
+                    IsMethodRunnigFistTime = true;
                     var quizService = scope.ServiceProvider.GetRequiredService<IQuizService>();
                     var Questions = await quizService.GetAllQuestions(_quizId);
                     var ContestTime = await quizService.GetQuizTime(_quizId);
                     DateTime ContestStartTime = (DateTime)ContestTime.Data;
                     QuizScheduleTime = ContestStartTime;
+                    if (QuizScheduleTime <= DateTime.Now)
+                    {
+                        Timer = false;
+                        var CurrentQuiz = ContestStartTime.Second - DateTime.Now.Second;
+                        double QuizNo = Math.Ceiling(CurrentQuiz*1.0 / 20.0);
+                        QuestionNo =(int) Math.Round(QuizNo)-1;
+                        var CurrentSecond = CurrentQuiz % 20;
+                        TimerSeconds = CurrentSecond==0 ? 20 : CurrentSecond;
+                        --TimerSeconds;
+                    }
+                    else
+                    {
+                        var RemainingTimerSeconds = QuizScheduleTime - DateTime.Now;
+                        TimerSeconds = 300-(int)RemainingTimerSeconds.TotalSeconds;
+                        --TimerSeconds;
+                    }
                     _questions = Questions.Data as List<GetQuestionsDTO>;
                 }
                 QuizHandleMethod(null);
@@ -66,7 +83,7 @@ public class QuizHandleBackgroundService : BackgroundService
             ++TimerSeconds;
             _logger.LogInformation($"Timed Hosted Service is working. Timer seconds: {TimerSeconds}");
 
-            if (TimerSeconds > 30 && Timer)
+            if (TimerSeconds > 300 && Timer)
             {
                 Timer = false;
                 TimerSeconds = 1;
@@ -83,11 +100,12 @@ public class QuizHandleBackgroundService : BackgroundService
             }
             else
             {
-                if (QuestionNo >= _questions.Count)
+                if (QuestionNo >= _questions.Count || QuestionNo < 0)
                 {
                     _quizServiceManager.StopQuizService(_quizId);
                     return ;
                 }
+                
                 var Question = _questions.ElementAt(QuestionNo);
                 var quizService = scope.ServiceProvider.GetRequiredService<IQuizService>();
                 var CorrectAnswer=await quizService.GetCorrectAnswer(Question.QuestionId);
