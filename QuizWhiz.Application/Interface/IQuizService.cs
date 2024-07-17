@@ -30,6 +30,8 @@ namespace QuizWhiz.Application.Interface
 
         public Task<ResponseDTO> UpdateQuizDetailsAsync(UpdateQuizDetailsDTO updateQuizDetailsDTO);
 
+        public Task<ResponseDTO> PublishQuizAsync(string quizLink);
+
         public Task<ResponseDTO> DeleteQuizAsync(string quizLink);
 
         public Task<ResponseDTO> UpdateQuizQuestionAsync(UpdateQuestionDetailsDTO updateQuestionDetailsDTO);
@@ -39,13 +41,11 @@ namespace QuizWhiz.Application.Interface
         public Task<ResponseDTO> GetSingleQuestion(GetSingleQuestionDTO getSingleQuestionDTO);
 
         public Task<ResponseDTO> GetCountOfQuestions(string quizLink);
-<<<<<<< Updated upstream
-=======
-
+       
         public List<KeyValuePair<int, string>> GetActiveQuizzes();
->>>>>>> Stashed changes
 
-        public Task<ResponseDTO> GetCorrectAnswer(string quizLink, int questionId);
+        public Task<ResponseDTO> GetAllQuestions(string QuizLink);
 
+        public Task<ResponseDTO> GetCorrectAnswer(int id);
     }
 }

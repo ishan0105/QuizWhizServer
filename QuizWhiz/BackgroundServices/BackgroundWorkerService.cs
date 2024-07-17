@@ -41,12 +41,13 @@ public class BackgroundWorkerService : BackgroundService
 
                 foreach (var quiz in quizzes)
                 {
-                    if (DateTime.Now >= quiz.ScheduledDate && quiz.StatusId == 2)
+                  
+                    if (DateTime.Now >= quiz.ScheduledDate.AddSeconds(-300) && quiz.StatusId == 2)
                     {
                         quiz.StatusId = 3;
                     }
 
-                    DateTime completedDateTime = quiz.ScheduledDate.AddMinutes((quiz.TotalQuestion / 4) + 1);
+                    DateTime completedDateTime = quiz.ScheduledDate.AddSeconds(quiz.TotalQuestion*20+1);
 
                     if (DateTime.Now >= completedDateTime)
                     {
@@ -55,8 +56,8 @@ public class BackgroundWorkerService : BackgroundService
                 }
 
                 await _unitOfWork.SaveAsync();
-                _logger.LogInformation("Worker running at : {time}", DateTimeOffset.Now);
-                await Task.Delay(10000, stoppingToken);
+                /*_logger.LogInformation("Worker running at : {time}", DateTimeOffset.Now);*/
+                await Task.Delay(1000, stoppingToken);
             }
         }
     }

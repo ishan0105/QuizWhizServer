@@ -70,7 +70,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddHostedService<BackgroundWorkerService>();
-builder.Services.AddHostedService<QuizTimerBackgroundService>();
+/*builder.Services.AddHostedService<QuizTimerBackgroundService>();*/
 
 builder.Services.AddDistributedMemoryCache();
 
@@ -99,11 +99,13 @@ builder.Services.AddControllers()
 
 
 builder.Services.AddAuthorization();
-builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.AddControllers();
-
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddSingleton<QuizServiceManager>();
+builder.Services.AddHostedService<QuizStartBackgroundService>();
 builder.Services.AddHostedService<QuestionService>();
+builder.Services.AddLogging(config => config.AddConsole());
 builder.Services.AddWebSockets(options =>
 {
 });

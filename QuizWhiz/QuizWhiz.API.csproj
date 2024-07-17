@@ -41,8 +41,4 @@
     <ProjectReference Include="..\QuizWhiz.Application\QuizWhiz.Application.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="quizhub\" />
-  </ItemGroup>
-
 </Project>
