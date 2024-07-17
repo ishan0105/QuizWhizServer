@@ -795,7 +795,7 @@ namespace QuizWhiz.Application.Services
             }
             Option option = await _unitOfWork.OptionRepository.GetFirstOrDefaultAsync(o => o.QuestionId == id && o.IsAnswer == true);
             return new()
-            {
+            {   
                 IsSuccess = true,
                 Message = "Correct option found",
                 StatusCode = HttpStatusCode.OK,
