@@ -22,8 +22,6 @@ namespace QuizWhiz.Application.Interface
 
         public Task<ResponseDTO> GetQuizCategoriesAsync();
 
-        public Task<ResponseDTO> GetQuizTime(string QuizLink);
-
         public Task<ResponseDTO> GetQuizDetailsAsync(string quizLink);
 
         public Task<ResponseDTO> GetQuizQuestionsAsync(string quizLink);
@@ -42,12 +40,18 @@ namespace QuizWhiz.Application.Interface
 
         public Task<ResponseDTO> GetCountOfQuestions(string quizLink);
 
+        public Task<ResponseDTO> GetQuizTime(string QuizLink);
+
         public List<KeyValuePair<int, string>> GetActiveQuizzes();
 
         public Task<ResponseDTO> GetAllQuestions(string QuizLink);
 
         public Task<ResponseDTO> GetCorrectAnswer(int id);
 
+        //public Task<ResponseDTO> CheckQuizAnswer(string quizLink, string userName, bool isAns);
+
+        public Task<ResponseDTO> GetQuizWinners(string quizLink);
+     
         public Task<ResponseDTO> UpdateScore(string quizLink, string userName);
     }
 }

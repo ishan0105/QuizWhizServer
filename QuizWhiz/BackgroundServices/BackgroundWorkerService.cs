@@ -1,4 +1,4 @@
-﻿
+
 using System.Threading;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -62,6 +62,3 @@ public class BackgroundWorkerService : BackgroundService
         }
     }
 }
-
-
-

@@ -19,12 +19,14 @@ public class QuizHandleBackgroundService : BackgroundService
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly IHubContext<QuizHub> _hubContext;
     private readonly string _quizLink;
+
     public DateTime QuizScheduleTime = DateTime.Now;
     private int TimerSeconds = 0;
     private bool Timer = true;
     private bool IsMethodRunnigFistTime = false;
     public List<GetQuestionsDTO> _questions=new List<GetQuestionsDTO>();
     public int QuestionNo = 0;
+
     public QuizHandleBackgroundService(ILogger<QuizHandleBackgroundService> logger, string quizLink, IServiceScopeFactory serviceScopeFactory, IHubContext<QuizHub> hubContext, QuizServiceManager quizServiceManager)
     {
         _logger = logger;
@@ -127,6 +129,7 @@ public class QuizHandleBackgroundService : BackgroundService
                     Question = Question.Question,
                     Options = options
                 };
+
                 if (TimerSeconds == 1)
                 {
                     await _hubContext.Clients.All.SendAsync($"ReceiveQuestion_{_quizLink}", QuestionNo + 1, sendQuestionDTO, TimerSeconds);
