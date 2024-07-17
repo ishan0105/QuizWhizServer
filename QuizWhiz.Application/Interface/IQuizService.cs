@@ -42,10 +42,12 @@ namespace QuizWhiz.Application.Interface
 
         public Task<ResponseDTO> GetCountOfQuestions(string quizLink);
 
-        public Task<List<KeyValuePair<int, string>>> GetActiveQuizzes();
+        public List<KeyValuePair<int, string>> GetActiveQuizzes();
 
         public Task<ResponseDTO> GetAllQuestions(string QuizLink);
 
         public Task<ResponseDTO> GetCorrectAnswer(int id);
+
+        public Task<ResponseDTO> UpdateScore(string quizLink, string userName);
     }
 }

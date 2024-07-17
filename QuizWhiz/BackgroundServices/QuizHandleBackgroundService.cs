@@ -70,7 +70,7 @@ public class QuizHandleBackgroundService : BackgroundService
                     }
                     if (Questions != null)
                     {
-                        _questions = Questions.Data as List<GetQuestionsDTO>;
+                        _questions =  Questions.Data as List<GetQuestionsDTO> ;
                     }
                 }
                 QuizHandleMethod(null);
@@ -109,7 +109,7 @@ public class QuizHandleBackgroundService : BackgroundService
             {
                 if (QuestionNo >= _questions.Count || QuestionNo < 0)
                 {
-                    _quizServiceManager.StopQuizService(_quizLink);
+                    await _quizServiceManager.StopQuizService(_quizLink);
                     return;
                 }
 
@@ -117,6 +117,7 @@ public class QuizHandleBackgroundService : BackgroundService
                 var quizService = scope.ServiceProvider.GetRequiredService<IQuizService>();
                 var CorrectAnswer = await quizService.GetCorrectAnswer(Question.QuestionId);
                 List<string> options = new List<string>();
+                
                 foreach (var ele in Question.Options)
                 {
                     options.Add(ele.OptionText!.ToString());
@@ -147,5 +148,4 @@ public class QuizHandleBackgroundService : BackgroundService
             }
         }
     }
-
 }
