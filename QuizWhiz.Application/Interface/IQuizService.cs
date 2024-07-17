@@ -39,6 +39,11 @@ namespace QuizWhiz.Application.Interface
         public Task<ResponseDTO> GetSingleQuestion(GetSingleQuestionDTO getSingleQuestionDTO);
 
         public Task<ResponseDTO> GetCountOfQuestions(string quizLink);
+<<<<<<< Updated upstream
+=======
+
+        public List<KeyValuePair<int, string>> GetActiveQuizzes();
+>>>>>>> Stashed changes
 
         public Task<ResponseDTO> GetCorrectAnswer(string quizLink, int questionId);
 
