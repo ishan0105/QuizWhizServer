@@ -1,4 +1,3 @@
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -106,9 +105,6 @@ builder.Services.AddSingleton<QuizServiceManager>();
 builder.Services.AddHostedService<QuizStartBackgroundService>();
 builder.Services.AddHostedService<QuestionService>();
 builder.Services.AddLogging(config => config.AddConsole());
-builder.Services.AddWebSockets(options =>
-{
-});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -140,32 +136,6 @@ app.UseEndpoints(endpoints =>
     endpoints.MapHub<QuizHub>("/quizhub");
 });
 
-/*
-static async Task HandleWebSocket(HttpContext context, WebSocket webSocket)
-{
-    while (webSocket.State == WebSocketState.Open)
-    {
-        var buffer = new byte[1024 * 4];
-        var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-        if (result.MessageType == WebSocketMessageType.Text)
-        {
-            var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-            var bytes = Encoding.UTF8.GetBytes($"Echo: {message}");
-            await webSocket.SendAsync(new ArraySegment<byte>(bytes, 0, result.Count), WebSocketMessageType.Text, true, CancellationToken.None);
-        }
-        else if (result.MessageType == WebSocketMessageType.Close)
-        {
-            await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
-        }
-    }
-}
-
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapControllers();
-    endpoints.MapHub<QuizHub>("/quizhub");
-});*/
 app.UseSession();
 app.MapControllers();
 app.Run();
-
