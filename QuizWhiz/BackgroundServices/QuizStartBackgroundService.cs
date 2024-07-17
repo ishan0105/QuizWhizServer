@@ -26,7 +26,7 @@ public class QuizStartBackgroundService : BackgroundService
             using (var scope = _serviceScopeFactory.CreateScope())
             {
                 var QuizService = scope.ServiceProvider.GetRequiredService<IQuizService>();
-                List<KeyValuePair<int, string>>QuizLinks =await QuizService.GetActiveQuizzes();
+                List<KeyValuePair<int, string>>QuizLinks = QuizService.GetActiveQuizzes();
               
                 foreach (var Link in QuizLinks)
                 {

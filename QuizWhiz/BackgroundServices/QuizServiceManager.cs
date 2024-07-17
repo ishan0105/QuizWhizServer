@@ -24,7 +24,7 @@ public class QuizServiceManager
          var quizService = new QuizHandleBackgroundService(
             _serviceProvider.GetRequiredService<ILogger<QuizHandleBackgroundService>>(),
             QuizLink, _serviceProvider.GetRequiredService<IServiceScopeFactory>(), _serviceProvider.GetRequiredService<IHubContext<QuizHub>>(), _serviceProvider.GetRequiredService<QuizServiceManager>());
-
+        
         _activeQuizServices.TryAdd(QuizLink, quizService);
         _serviceProvider.GetRequiredService<IHostApplicationLifetime>().ApplicationStarted.Register(() =>
         {
