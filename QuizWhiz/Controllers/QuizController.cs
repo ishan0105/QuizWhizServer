@@ -316,8 +316,25 @@ namespace QuizWhiz.API.Controllers
             }
             return await _quizService.GetCountOfQuestions(quizLink);
         }
-        
-        
+
+        [HttpGet("get-quiz-winners")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        public async Task<ResponseDTO> GetQuizWinners([FromQuery] string quizLink)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Something Went Wrong",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+
+            return await _quizService.GetQuizWinners(quizLink);
+        }
         
     }
 }

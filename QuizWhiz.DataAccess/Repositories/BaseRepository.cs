@@ -63,5 +63,10 @@ namespace QuizWhiz.DataAccess.Repositories
         {
             return await _dbSet.CountAsync(predicate);
         }
+
+        public async Task<List<T>> GetWhereOrderByAsync(Expression<Func<T, bool>> predicate, Expression<Func<T, object>> orderByExpression)
+        {
+            return await _dbSet.Where(predicate).OrderBy(orderByExpression).ToListAsync();
+        }
     }
 }

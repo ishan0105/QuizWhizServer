@@ -713,6 +713,8 @@ namespace QuizWhiz.Application.Services
             };
         }
 
+        //public async Task<ResponseDTO> GetCorrectAnswer(string quizLink, int questionCount)
+      
         public List<KeyValuePair<int, string>> GetActiveQuizzes()
         {
             var QuizTable = _unitOfWork.QuizRepository.GetTable();
@@ -736,6 +738,7 @@ namespace QuizWhiz.Application.Services
 
             return activeQuizzes;
         }
+
         public async Task<ResponseDTO> GetAllQuestions(string QuizLink)
         {
             if (QuizLink == null)
@@ -857,7 +860,7 @@ namespace QuizWhiz.Application.Services
             await _unitOfWork.SaveAsync();
             
             return new()
-            {
+            {   
                 IsSuccess = true,
                 Message = "Correct Ans",
                 StatusCode = HttpStatusCode.OK,
@@ -902,10 +905,14 @@ namespace QuizWhiz.Application.Services
                 StatusCode = HttpStatusCode.OK,
             };
         }
-        public async Task<ResponseDTO> GetLeaderBoardData(string quizLink)
+
+        public async Task<ResponseDTO> GetQuizWinners(string quizLink)
         {
-            Quiz? quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(q => q.QuizLink == quizLink);
-            if (quiz == null)
+            List<QuizParticipants> firstRank = new List<QuizParticipants>();
+            List<QuizParticipants> secondRank = new List<QuizParticipants>();
+            List<QuizParticipants> thirdRank = new List<QuizParticipants>();
+            Quiz quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(q => q.QuizLink == quizLink);
+            if(quiz == null)
             {
                 return new()
                 {
@@ -915,10 +922,34 @@ namespace QuizWhiz.Application.Services
                 };
             }
 
+            if(quiz.StatusId != 4)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Quiz not completed",
+                    Data = null,
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            var distinctScores = await _unitOfWork.QuizParticipantsRepository.GetTable().Where(p => p.QuizId == quiz.QuizId).Select(p => p.TotalScore).Distinct().OrderByDescending(score => score).ToListAsync();
+            firstRank = await _unitOfWork.QuizParticipantsRepository.GetWhereAsync(q => q.TotalScore == distinctScores.Skip(0).FirstOrDefault() && q.QuizId == quiz.QuizId);
+            secondRank = await _unitOfWork.QuizParticipantsRepository.GetWhereAsync(q => q.TotalScore == distinctScores.Skip(1).FirstOrDefault() && q.QuizId == quiz.QuizId);
+            thirdRank = await _unitOfWork.QuizParticipantsRepository.GetWhereAsync(q => q.TotalScore == distinctScores.Skip(2).FirstOrDefault() && q.QuizId == quiz.QuizId);
+
+            QuizWinners quizWinners = new QuizWinners
+            {
+                firstRankedUsers = firstRank,
+                secondRankedUsers = secondRank,
+                thirdRankedUsers = thirdRank,
+            };
+
             return new()
             {
                 IsSuccess = true,
-                Message = "Score updated successfully",
+                Data = quizWinners,
+                Message = "Quiz winners fetched successfully",
                 StatusCode = HttpStatusCode.OK,
             };
         }

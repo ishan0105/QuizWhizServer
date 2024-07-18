@@ -128,6 +128,7 @@ app.UseExceptionHandler();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseWebSockets();
+app.UseRouting();
 
 app.UseEndpoints(endpoints =>
 {
