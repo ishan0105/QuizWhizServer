@@ -46,7 +46,7 @@ namespace QuizWhiz.Application.Interface
 
         public Task<ResponseDTO> GetAllQuestions(string QuizLink);
 
-        public Task<ResponseDTO> GetCorrectAnswer(int id);
+        public Task<ResponseDTO> GetCorrectAnswer(string QuizLink, int QuizId, string userName, List<int> userAnswers);
 
         //public Task<ResponseDTO> CheckQuizAnswer(string quizLink, string userName, bool isAns);
 

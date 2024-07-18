@@ -116,10 +116,15 @@ public class QuizHandleBackgroundService : BackgroundService
                 }
 
                 var Question = _questions.ElementAt(QuestionNo);
+                /*var CorrectAnswer = await quizService.GetCorrectAnswer(Question.QuestionId);*/
+                if(Question==null)
+                {
+                    await _quizServiceManager.StopQuizService(_quizLink);
+                    return;
+                }
                 var quizService = scope.ServiceProvider.GetRequiredService<IQuizService>();
-                var CorrectAnswer = await quizService.GetCorrectAnswer(Question.QuestionId);
+                bool IsDisqualified = false;
                 List<string> options = new List<string>();
-                
                 foreach (var ele in Question.Options)
                 {
                     options.Add(ele.OptionText!.ToString());
@@ -134,20 +139,16 @@ public class QuizHandleBackgroundService : BackgroundService
                 {
                     await _hubContext.Clients.All.SendAsync($"ReceiveQuestion_{_quizLink}", QuestionNo + 1, sendQuestionDTO, TimerSeconds);
                 }
-                else if (TimerSeconds == 17)
+               /* else if (TimerSeconds == 17)
                 {
                     await _hubContext.Clients.All.SendAsync($"ReceiveAnswer_{_quizLink}", QuestionNo + 1, CorrectAnswer.Data, TimerSeconds);
-                }
-                else if ((TimerSeconds > 1 && TimerSeconds < 17) || TimerSeconds > 17)
+                }*/
+                else if (TimerSeconds == 20)
                 {
-                    await _hubContext.Clients.All.SendAsync($"ReceiveTimerSeconds{_quizLink}", TimerSeconds);
-                    if (TimerSeconds == 20)
-                    {
-                        TimerSeconds = 0;
-                        ++QuestionNo;
-                    }
+                    TimerSeconds = 0;
+                    ++QuestionNo;
                 }
-
+                await _hubContext.Clients.All.SendAsync($"ReceiveTimerSeconds{_quizLink}", TimerSeconds);
             }
         }
     }
