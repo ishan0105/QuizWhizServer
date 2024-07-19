@@ -895,7 +895,7 @@ namespace QuizWhiz.Application.Services
                 StatusCode = HttpStatusCode.OK,
                 Data = IsCorrect
             };
-    }
+        }
 
         public async Task<ResponseDTO> GetQuizWinners(string quizLink)
         {
