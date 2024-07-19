@@ -38,11 +38,9 @@ public class QuizHandleBackgroundService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        /*_logger.LogInformation("Quiz {QuizId} BackgroundService is starting.", _quizId);*/
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            /*_logger.LogInformation("Quiz {QuizId} is active.", _quizId);*/
             using (var scope = _serviceScopeFactory.CreateScope())
             {
                 if (!IsMethodRunnigFistTime)

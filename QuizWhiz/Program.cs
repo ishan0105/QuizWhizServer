@@ -121,8 +121,6 @@ else
 }
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.UseRouting();
-
 app.UseCors("CorsPolicy");
 app.UseExceptionHandler();
 app.UseWebSockets();
