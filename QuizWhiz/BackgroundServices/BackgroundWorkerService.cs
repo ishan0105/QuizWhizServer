@@ -16,19 +16,19 @@ public class BackgroundWorkerService : BackgroundService
         _logger = logger;
         _scopeFactory = scopeFactory;
     }
-    
+
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Service Started.");
         await Task.CompletedTask;
     }
-    
+
     public async Task StopAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Service Stopped.");
         await Task.CompletedTask;
     }
-
+    
     protected async override Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
