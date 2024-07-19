@@ -124,12 +124,12 @@ public class QuizHandleBackgroundService : BackgroundService
                 {
                     options.Add(ele.OptionText!.ToString());
                 }
+
                 SendQuestionDTO sendQuestionDTO = new SendQuestionDTO()
                 {
                     Question = Question.Question,
                     Options = options
                 };
-
 
                 if (TimerSeconds == 1)
                 {
@@ -148,7 +148,6 @@ public class QuizHandleBackgroundService : BackgroundService
                         ++QuestionNo;
                     }
                 }
-
             }
         }
     }
