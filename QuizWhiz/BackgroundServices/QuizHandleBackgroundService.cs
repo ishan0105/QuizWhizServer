@@ -147,7 +147,6 @@ public class QuizHandleBackgroundService : BackgroundService
                         ++QuestionNo;
                     }
                 }
-
             }
         }
     }
