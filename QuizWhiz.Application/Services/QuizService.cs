@@ -802,7 +802,6 @@ namespace QuizWhiz.Application.Services
             };
         }
 
-
         public async Task<ResponseDTO> UpdateScore(string quizLink, string userName)
         {
             Quiz? quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(q => q.QuizLink == quizLink);
