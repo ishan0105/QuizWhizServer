@@ -125,11 +125,11 @@ app.UseStaticFiles();
 /*app.UseCors("AllowAll");*/
 app.UseCors("CorsPolicy");
 app.UseExceptionHandler();
-app.UseAuthentication();
-app.UseAuthorization();
+
 app.UseWebSockets();
 app.UseRouting();
-
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
