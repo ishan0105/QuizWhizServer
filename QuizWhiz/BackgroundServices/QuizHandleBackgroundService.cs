@@ -135,6 +135,7 @@ public class QuizHandleBackgroundService : BackgroundService
                     Options = options
                 };
 
+
                 if (TimerSeconds == 1)
                 {
                     await _hubContext.Clients.All.SendAsync($"ReceiveQuestion_{_quizLink}", QuestionNo + 1, sendQuestionDTO, TimerSeconds);
