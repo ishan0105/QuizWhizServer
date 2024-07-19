@@ -714,7 +714,7 @@ namespace QuizWhiz.Application.Services
         }
 
         //public async Task<ResponseDTO> GetCorrectAnswer(string quizLink, int questionCount)
-      
+
         public List<KeyValuePair<int, string>> GetActiveQuizzes()
         {
             var QuizTable = _unitOfWork.QuizRepository.GetTable();
@@ -797,7 +797,7 @@ namespace QuizWhiz.Application.Services
                 };
             }
             List<Option> Options = await _unitOfWork.OptionRepository.GetWhereAsync(o => o.QuestionId == QuestionId && o.IsAnswer == true);
-            List<int>OptionIds=Options.Select(o=>o.OptionNo).ToList();
+            List<int> OptionIds = Options.Select(o => o.OptionNo).ToList();
             bool IsCorrect = true;
             foreach (var userOption in userAnswers)
             {
@@ -827,9 +827,9 @@ namespace QuizWhiz.Application.Services
                     StatusCode = HttpStatusCode.BadRequest,
                 };
             }
-            
+
             QuizParticipants? quizParticipants = await _unitOfWork.QuizParticipantsRepository.GetFirstOrDefaultAsync(qp => qp.QuizId == quiz.QuizId && qp.UserId == user.UserId);
-            
+
             if (quizParticipants == null)
             {
                 return new()
@@ -839,7 +839,7 @@ namespace QuizWhiz.Application.Services
                     StatusCode = HttpStatusCode.BadRequest,
                 };
             }
-            if(quizParticipants.IsDisqualified)
+            if (quizParticipants.IsDisqualified)
             {
                 return new()
                 {
@@ -858,9 +858,9 @@ namespace QuizWhiz.Application.Services
                 quizParticipants.IsDisqualified = true;
             }
             await _unitOfWork.SaveAsync();
-            
+
             return new()
-            {   
+            {
                 IsSuccess = true,
                 Message = "Correct Ans",
                 StatusCode = HttpStatusCode.OK,
@@ -912,7 +912,7 @@ namespace QuizWhiz.Application.Services
             List<QuizParticipants> secondRank = new List<QuizParticipants>();
             List<QuizParticipants> thirdRank = new List<QuizParticipants>();
             Quiz quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(q => q.QuizLink == quizLink);
-            if(quiz == null)
+            if (quiz == null)
             {
                 return new()
                 {
@@ -922,7 +922,7 @@ namespace QuizWhiz.Application.Services
                 };
             }
 
-            if(quiz.StatusId != 4)
+            if (quiz.StatusId != 4)
             {
                 return new()
                 {
@@ -951,6 +951,54 @@ namespace QuizWhiz.Application.Services
                 Data = quizWinners,
                 Message = "Quiz winners fetched successfully",
                 StatusCode = HttpStatusCode.OK,
+            };
+        }
+        public async Task<ResponseDTO> RegisterUser(string quizLink, string userName)
+        {
+            User? user = await _unitOfWork.UserRepository.GetFirstOrDefaultAsync(u => u.Username == userName);
+            if (user == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "User Not Found",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+            Quiz? quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(q => q.QuizLink == quizLink);
+            if (quiz == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Quiz Not Found",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+            QuizParticipants? quizParticipants = await _unitOfWork.QuizParticipantsRepository.GetFirstOrDefaultAsync(qp => qp.QuizId == quiz.QuizId && qp.UserId == user.UserId);
+            if (quizParticipants != null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "User Has Been Already Registered For This Quiz",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+            QuizParticipants newUser = new()
+            {
+                Quiz = quiz,
+                QuizId = quiz.QuizId,
+                UserId = user.UserId,
+                User = user
+            };
+            await _unitOfWork.QuizParticipantsRepository.CreateAsync(newUser);
+            await _unitOfWork.SaveAsync();
+            return new()
+            {
+                IsSuccess = true,
+                Message = "User Registered For Quiz Successfully",
+                StatusCode = HttpStatusCode.BadRequest,
             };
         }
     }

@@ -22,8 +22,8 @@ public class QuizHub : Hub
     }
     public async Task RegisterUser(string QuizLink, string userName)
     {
-        /*var result = 
-        await Clients.All.SendAsync($"ReceiveAnswer_{QuizLink}", result, 17);*/
+        var result = await _quizService.RegisterUser(QuizLink, userName);
+        await Clients.All.SendAsync($"ValidUser_{QuizLink}", QuizLink , userName,result);
     }
     /*public async Task UpdateScore(string quizLink, string userName)
     {
