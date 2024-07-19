@@ -21,8 +21,8 @@ public class QuizHub : Hub
     }
     public async Task UpdateScore(string quizLink, string userName)
     {
-       var result=await _quizService.UpdateScore(quizLink, userName);
+        var result = await _quizService.UpdateScore(quizLink, userName);
 
-       await Clients.All.SendAsync("ReceiveResponse", true);
+        await Clients.All.SendAsync("ReceiveResponse", true);
     }
 }

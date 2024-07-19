@@ -51,7 +51,7 @@ namespace QuizWhiz.Application.Interface
         //public Task<ResponseDTO> CheckQuizAnswer(string quizLink, string userName, bool isAns);
 
         public Task<ResponseDTO> GetQuizWinners(string quizLink);
-     
+
         public Task<ResponseDTO> UpdateScore(string quizLink, string userName);
     }
 }

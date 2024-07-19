@@ -60,7 +60,7 @@ namespace QuizWhiz.Application.Services
 
                 foreach (var quizDetails in quizzes)
                 {
-                    if (quizDetails.QuizLink!=null && quizDetails.QuizLink.Equals(resultLink, StringComparison.OrdinalIgnoreCase))
+                    if (quizDetails.QuizLink != null && quizDetails.QuizLink.Equals(resultLink, StringComparison.OrdinalIgnoreCase))
                     {
                         isLinkUnique = false;
                         break;
@@ -714,7 +714,7 @@ namespace QuizWhiz.Application.Services
         }
 
         //public async Task<ResponseDTO> GetCorrectAnswer(string quizLink, int questionCount)
-      
+
         public List<KeyValuePair<int, string>> GetActiveQuizzes()
         {
             var QuizTable = _unitOfWork.QuizRepository.GetTable();
@@ -723,7 +723,7 @@ namespace QuizWhiz.Application.Services
             {
                 if (Quiz.StatusId == 3)
                 {
-                     activeQuizzes.Add(new KeyValuePair<int, string>(3, Quiz.QuizLink!));
+                    activeQuizzes.Add(new KeyValuePair<int, string>(3, Quiz.QuizLink!));
                 }
                 else if (Quiz.StatusId == 4)
                 {
@@ -794,7 +794,7 @@ namespace QuizWhiz.Application.Services
             }
             List<Option> option = await _unitOfWork.OptionRepository.GetWhereAsync(o => o.QuestionId == id && o.IsAnswer == true);
             return new()
-            {   
+            {
                 IsSuccess = true,
                 Message = "Correct option found",
                 StatusCode = HttpStatusCode.OK,
@@ -847,7 +847,7 @@ namespace QuizWhiz.Application.Services
             List<QuizParticipants> secondRank = new List<QuizParticipants>();
             List<QuizParticipants> thirdRank = new List<QuizParticipants>();
             Quiz quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(q => q.QuizLink == quizLink);
-            if(quiz == null)
+            if (quiz == null)
             {
                 return new()
                 {
@@ -858,7 +858,7 @@ namespace QuizWhiz.Application.Services
                 };
             }
 
-            if(quiz.StatusId != 4)
+            if (quiz.StatusId != 4)
             {
                 return new()
                 {
