@@ -124,6 +124,7 @@ public class QuizHandleBackgroundService : BackgroundService
                 {
                     options.Add(ele.OptionText!.ToString());
                 }
+
                 SendQuestionDTO sendQuestionDTO = new SendQuestionDTO()
                 {
                     Question = Question.Question,
