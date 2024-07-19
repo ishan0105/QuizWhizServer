@@ -802,9 +802,41 @@ namespace QuizWhiz.Application.Services
             };
         }
 
-        public async Task<ResponseDTO> UpdateScore(string quizLink, string userName)
+        public async Task<ResponseDTO> UpdateScore(string QuizLink, string userName, int QuestionId, List<int> userAnswers)
         {
-            Quiz? quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(q => q.QuizLink == quizLink);
+            if (QuestionId == 0)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Questions not found!!",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+            List<Option> Options = await _unitOfWork.OptionRepository.GetWhereAsync(o => o.QuestionId == QuestionId && o.IsAnswer == true);
+            List<int> OptionIds = Options.Select(o => o.OptionNo).ToList();
+            userAnswers.Sort();
+            OptionIds.Sort();
+            bool IsCorrect = true;
+
+            if (userAnswers.Count != OptionIds.Count)
+            {
+                IsCorrect = false;
+            }
+            else
+            {
+                var idx = 0;
+                foreach (var option in OptionIds)
+                {
+                    if (option != userAnswers.ElementAt(idx))
+                    {
+                        IsCorrect = false;
+                        break;
+                    }
+                    ++idx;
+                }
+            }
+            Quiz? quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(q => q.QuizLink == QuizLink);
             if (quiz == null)
             {
                 return new()
@@ -826,20 +858,44 @@ namespace QuizWhiz.Application.Services
             }
 
             QuizParticipants? quizParticipants = await _unitOfWork.QuizParticipantsRepository.GetFirstOrDefaultAsync(qp => qp.QuizId == quiz.QuizId && qp.UserId == user.UserId);
-            if (quizParticipants != null)
+
+            if (quizParticipants == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Something Went Wrong",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+            if (quizParticipants.IsDisqualified)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "User has been disqualified",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+            if (IsCorrect)
             {
                 quizParticipants.CorrectQuestions = quizParticipants.CorrectQuestions + 1;
                 quizParticipants.TotalScore = quizParticipants.TotalScore + 1;
+            }
+            else
+            {
+                quizParticipants.IsDisqualified = true;
             }
             await _unitOfWork.SaveAsync();
 
             return new()
             {
                 IsSuccess = true,
-                Message = "Score updated successfully",
+                Message = "Correct Ans",
                 StatusCode = HttpStatusCode.OK,
+                Data = IsCorrect
             };
-        }
+    }
 
         public async Task<ResponseDTO> GetQuizWinners(string quizLink)
         {
