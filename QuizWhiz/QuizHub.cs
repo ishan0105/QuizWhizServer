@@ -15,20 +15,14 @@ public class QuizHub : Hub
     {
         _quizService = quizService;
     }
-    public async Task SendAnswer(string QuizLink,int QuestionId,string userName,List<int>userAnswers)
+    public async Task SendMessage(string message)
     {
-        var result = await _quizService.GetCorrectAnswer(QuizLink, QuestionId, userName,userAnswers);
-        await Clients.All.SendAsync($"ReceiveAnswer_{QuizLink}", result , 17);
+        await Clients.All.SendAsync("ReceiveMessage", message);
     }
-    public async Task RegisterUser(string QuizLink, string userName)
+    public async Task UpdateScore(string quizLink, string userName)
     {
-        /*var result = 
-        await Clients.All.SendAsync($"ReceiveAnswer_{QuizLink}", result, 17);*/
-    }
-    /*public async Task UpdateScore(string quizLink, string userName)
-    {
-       var result=await _quizService.UpdateScore(quizLink, userName);
+        var result = await _quizService.UpdateScore(quizLink, userName);
 
-       await Clients.All.SendAsync("ReceiveResponse", true);
-    }*/
+        await Clients.All.SendAsync("ReceiveResponse", true);
+    }
 }

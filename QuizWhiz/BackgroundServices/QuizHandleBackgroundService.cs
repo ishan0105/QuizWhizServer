@@ -24,7 +24,7 @@ public class QuizHandleBackgroundService : BackgroundService
     private int TimerSeconds = 0;
     private bool Timer = true;
     private bool IsMethodRunnigFistTime = false;
-    public List<GetQuestionsDTO> _questions=new List<GetQuestionsDTO>();
+    public List<GetQuestionsDTO> _questions = new List<GetQuestionsDTO>();
     public int QuestionNo = 0;
 
     public QuizHandleBackgroundService(ILogger<QuizHandleBackgroundService> logger, string quizLink, IServiceScopeFactory serviceScopeFactory, IHubContext<QuizHub> hubContext, QuizServiceManager quizServiceManager)
@@ -57,7 +57,7 @@ public class QuizHandleBackgroundService : BackgroundService
                     if (QuizScheduleTime <= DateTime.Now)
                     {
                         Timer = false;
-                        var CurrentQuiz =  DateTime.Now- ContestStartTime ;
+                        var CurrentQuiz = DateTime.Now - ContestStartTime;
                         double QuizNo = Math.Ceiling(CurrentQuiz.Seconds * 1.0 / 20.0);
                         QuestionNo = (int)QuizNo - 1;
                         var CurrentSecond = CurrentQuiz.Seconds % 20;
@@ -72,7 +72,7 @@ public class QuizHandleBackgroundService : BackgroundService
                     }
                     if (Questions != null)
                     {
-                        _questions =  Questions.Data as List<GetQuestionsDTO> ;
+                        _questions = Questions.Data as List<GetQuestionsDTO>;
                     }
                 }
                 QuizHandleMethod(null);
@@ -116,40 +116,38 @@ public class QuizHandleBackgroundService : BackgroundService
                 }
 
                 var Question = _questions.ElementAt(QuestionNo);
-                /*var CorrectAnswer = await quizService.GetCorrectAnswer(Question.QuestionId);*/
-                if(Question==null)
-                {
-                    await _quizServiceManager.StopQuizService(_quizLink);
-                    return;
-                }
                 var quizService = scope.ServiceProvider.GetRequiredService<IQuizService>();
-                bool IsDisqualified = false;
+                var CorrectAnswer = await quizService.GetCorrectAnswer(Question.QuestionId);
                 List<string> options = new List<string>();
+
                 foreach (var ele in Question.Options)
                 {
                     options.Add(ele.OptionText!.ToString());
                 }
+
                 SendQuestionDTO sendQuestionDTO = new SendQuestionDTO()
                 {
                     Question = Question.Question,
                     Options = options
                 };
 
-
                 if (TimerSeconds == 1)
                 {
                     await _hubContext.Clients.All.SendAsync($"ReceiveQuestion_{_quizLink}", QuestionNo + 1, sendQuestionDTO, TimerSeconds);
                 }
-               /* else if (TimerSeconds == 17)
+                else if (TimerSeconds == 17)
                 {
                     await _hubContext.Clients.All.SendAsync($"ReceiveAnswer_{_quizLink}", QuestionNo + 1, CorrectAnswer.Data, TimerSeconds);
-                }*/
-                else if (TimerSeconds == 20)
-                {
-                    TimerSeconds = 0;
-                    ++QuestionNo;
                 }
-                await _hubContext.Clients.All.SendAsync($"ReceiveTimerSeconds{_quizLink}", TimerSeconds);
+                else if ((TimerSeconds > 1 && TimerSeconds < 17) || TimerSeconds > 17)
+                {
+                    await _hubContext.Clients.All.SendAsync($"ReceiveTimerSeconds{_quizLink}", TimerSeconds);
+                    if (TimerSeconds == 20)
+                    {
+                        TimerSeconds = 0;
+                        ++QuestionNo;
+                    }
+                }
             }
         }
     }
