@@ -222,6 +222,9 @@ namespace QuizWhiz.DataAccess.Migrations
                     b.Property<int>("CorrectQuestions")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("IsDisqualified")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("QuizId")
                         .HasColumnType("integer");
 

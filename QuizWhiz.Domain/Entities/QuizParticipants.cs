@@ -29,10 +29,12 @@ namespace QuizWhiz.Domain.Entities
 
         public int Rank { get; set; } = 0;
 
+        public bool IsDisqualified { get; set; } = false;
+
         [ForeignKey(nameof(QuizId))]
-        public Quiz Quiz { get; set; }
+        public required Quiz Quiz { get; set; }
 
         [ForeignKey(nameof(UserId))]
-        public User User { get; set; }
+        public required User User { get; set; }
     }
 }
