@@ -896,13 +896,60 @@ namespace QuizWhiz.Application.Services
                 Data = IsCorrect
             };
         }
+        public async Task<ResponseDTO> UpdateLeaderBoard(int QuizId)
+        {
+            if (QuizId == 0)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Quiz not found!!",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
 
+            List<QuizParticipants> quizParticipants=await _unitOfWork.QuizParticipantsRepository.GetWhereAsync(r=>r.QuizId== QuizId);
+            var sortedParticipants= quizParticipants.OrderByDescending(e => e.TotalScore).ToList();
+
+            int Rank = 1;
+            for(var idx=0;idx<sortedParticipants.Count; idx++)
+            {
+                var currentParticipant = sortedParticipants.ElementAt(idx);
+                while(idx< sortedParticipants.Count &&  currentParticipant.TotalScore== sortedParticipants.ElementAt(idx).TotalScore)
+                {
+                    var user = sortedParticipants.ElementAt(idx);
+                    var participant = quizParticipants.Find(r=>r.UserId== user.UserId);
+                    if (participant == null)
+                    {
+                        return new()
+                        {
+                            IsSuccess = false,
+                            Message = "user not found!!",
+                            StatusCode = HttpStatusCode.BadRequest,
+                        };
+                    }
+                    participant.Rank = Rank;
+                    idx++;
+                }
+                Rank++;
+                idx--;
+            }
+
+            await _unitOfWork.SaveAsync();
+
+            return new()
+            {
+                IsSuccess = true,
+                Message = "Leaderboard Updated!!",
+                StatusCode = HttpStatusCode.OK,
+            };
+        }
         public async Task<ResponseDTO> GetQuizWinners(string quizLink)
         {
             List<QuizParticipants> firstRank = new List<QuizParticipants>();
             List<QuizParticipants> secondRank = new List<QuizParticipants>();
             List<QuizParticipants> thirdRank = new List<QuizParticipants>();
-            Quiz quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(q => q.QuizLink == quizLink);
+            Quiz? quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(q => q.QuizLink == quizLink);
             if (quiz == null)
             {
                 return new()
@@ -993,5 +1040,51 @@ namespace QuizWhiz.Application.Services
                 StatusCode = HttpStatusCode.BadRequest,
             };
         }
+        public async Task<ResponseDTO> GetDisqualifiedUsers(string quizLink)
+        {
+            if(quizLink == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Quiz Not Found",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+            Quiz? quiz=await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(r=>r.QuizLink==quizLink);
+            if (quiz == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Quiz Not Found",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+            List<QuizParticipants> quizParticipants = await _unitOfWork.QuizParticipantsRepository.GetWhereAsync(r => r.QuizId == quiz.QuizId && r.IsDisqualified==true);
+            List<string> disqualifiedUsers = new List<string>();
+            foreach(var user in  quizParticipants)
+            {
+                var currentUser =await _unitOfWork.UserRepository.GetFirstOrDefaultAsync(r => r.UserId == user.UserId);
+                if(currentUser == null)
+                {
+                    return new()
+                    {
+                        IsSuccess = false,
+                        Message = "User Not Found",
+                        StatusCode = HttpStatusCode.BadRequest,
+                    };
+                }
+                disqualifiedUsers.Add(currentUser.Username);
+            }
+            return new()
+            {
+                IsSuccess = true,
+                Message = "Disqualified Users",
+                StatusCode = HttpStatusCode.OK,
+                Data = disqualifiedUsers
+            };
+        }
+        
     }
 }
