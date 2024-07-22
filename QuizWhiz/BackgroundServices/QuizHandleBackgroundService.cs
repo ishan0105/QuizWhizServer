@@ -107,6 +107,7 @@ public class QuizHandleBackgroundService : BackgroundService
             }
             else
             {
+                
                 if (QuestionNo >= _questions.Count || QuestionNo < 0)
                 {
                     await _quizServiceManager.StopQuizService(_quizLink);
@@ -116,8 +117,13 @@ public class QuizHandleBackgroundService : BackgroundService
                 var Question = _questions.ElementAt(QuestionNo);
                 var quizService = scope.ServiceProvider.GetRequiredService<IQuizService>();
                 var CorrectAnswer = await quizService.GetCorrectAnswer(Question.QuestionId);
+                var disqualifiedUsers = await quizService.GetDisqualifiedUsers(_quizLink);
                 List<string> options = new List<string>();
-
+                if (Question == null)
+                {
+                    await _quizServiceManager.StopQuizService(_quizLink);
+                    return;
+                }
                 foreach (var ele in Question.Options)
                 {
                     options.Add(ele.OptionText!.ToString());
@@ -131,7 +137,7 @@ public class QuizHandleBackgroundService : BackgroundService
 
                 if (TimerSeconds == 1)
                 {
-                    await _hubContext.Clients.All.SendAsync($"ReceiveQuestion_{_quizLink}", QuestionNo + 1, sendQuestionDTO, TimerSeconds);
+                    await _hubContext.Clients.All.SendAsync($"ReceiveQuestion_{_quizLink}", QuestionNo + 1, sendQuestionDTO, TimerSeconds, disqualifiedUsers);
                 }
                 else if (TimerSeconds == 17)
                 {
