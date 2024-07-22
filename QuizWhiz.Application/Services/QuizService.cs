@@ -124,7 +124,6 @@ namespace QuizWhiz.Application.Services
                         && (getQuizFilterDTO.StatusId == 0 || q.StatusId == getQuizFilterDTO.StatusId)
                         && (getQuizFilterDTO.DifficultyId == 0 || q.DifficultyId == getQuizFilterDTO.DifficultyId)
                         && (getQuizFilterDTO.CategoryId == 0 || q.CategoryId == getQuizFilterDTO.CategoryId)
-                        orderby q.ScheduledDate ascending
                         select new
                         {
                             q.QuizId,
@@ -139,6 +138,33 @@ namespace QuizWhiz.Application.Services
                             q.TotalQuestion,
                             q.WinningAmount
                         };
+
+            if(!string.IsNullOrEmpty(getQuizFilterDTO.FilterBy))
+            {
+                switch(getQuizFilterDTO.FilterBy.ToLower())
+                {
+                    case "title":
+                        query = getQuizFilterDTO.IsAscending ? query.OrderBy(q => q.Title) : query.OrderByDescending(q => q.Title);
+                        break;
+                    case "totalquestions":
+                        query = getQuizFilterDTO.IsAscending ? query.OrderBy(q => q.TotalQuestion) : query.OrderByDescending(q => q.TotalQuestion);
+                        break;
+                    case "totalmarks":
+                        query = getQuizFilterDTO.IsAscending ? query.OrderBy(q => q.TotalMarks) : query.OrderByDescending(q => q.TotalMarks);
+                        break;
+                    case "difficulty":
+                        query = getQuizFilterDTO.IsAscending ? query.OrderBy(q => q.DifficultyId) : query.OrderByDescending(q => q.DifficultyId);
+                        break;
+                    default:
+                        query = query.OrderBy(q => q.ScheduledDate); 
+                        break;
+                }
+            }
+
+            else
+            {
+                query = query.OrderBy(q => q.ScheduledDate); 
+            }
 
             var quizzes = await query.ToListAsync().ConfigureAwait(false);
 
