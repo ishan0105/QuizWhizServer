@@ -114,6 +114,7 @@ public class QuizHandleBackgroundService : BackgroundService
                 }
 
                 var Question = _questions.ElementAt(QuestionNo);
+
                 var quizService = scope.ServiceProvider.GetRequiredService<IQuizService>();
                 var CorrectAnswer = await quizService.GetCorrectAnswer(Question.QuestionId);
                 List<string> options = new List<string>();

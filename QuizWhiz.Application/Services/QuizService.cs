@@ -810,7 +810,7 @@ namespace QuizWhiz.Application.Services
                 {
                     IsSuccess = false,
                     Message = "Questions not found!!",
-                    StatusCode = HttpStatusCode.BadRequest,
+                    StatusCode = HttpStatusCode.OK,
                 };
             }
             List<Option> Options = await _unitOfWork.OptionRepository.GetWhereAsync(o => o.QuestionId == QuestionId && o.IsAnswer == true);
@@ -853,7 +853,7 @@ namespace QuizWhiz.Application.Services
                 {
                     IsSuccess = false,
                     Message = "User not found",
-                    StatusCode = HttpStatusCode.BadRequest,
+                    StatusCode = HttpStatusCode.OK,
                 };
             }
 
@@ -865,7 +865,7 @@ namespace QuizWhiz.Application.Services
                 {
                     IsSuccess = false,
                     Message = "Something Went Wrong",
-                    StatusCode = HttpStatusCode.BadRequest,
+                    StatusCode = HttpStatusCode.OK,
                 };
             }
             if (quizParticipants.IsDisqualified)
@@ -874,7 +874,7 @@ namespace QuizWhiz.Application.Services
                 {
                     IsSuccess = false,
                     Message = "User has been disqualified",
-                    StatusCode = HttpStatusCode.BadRequest,
+                    StatusCode = HttpStatusCode.OK,
                 };
             }
             if (IsCorrect)
