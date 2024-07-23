@@ -119,7 +119,9 @@ public class QuizHandleBackgroundService : BackgroundService
                         await _quizServiceManager.StopQuizService(_quizLink);
                         return;
                     }
+                    quizData.StatusId = 4;
                     await quizService.UpdateLeaderBoard(quizData.QuizId);
+                    await _unitOfWork.SaveAsync();
                     await _quizServiceManager.StopQuizService(_quizLink);
                     return;
                 }
