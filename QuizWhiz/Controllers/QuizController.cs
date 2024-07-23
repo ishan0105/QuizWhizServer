@@ -335,6 +335,25 @@ namespace QuizWhiz.API.Controllers
 
             return await _quizService.GetQuizWinners(quizLink);
         }
-        
+
+        [HttpGet("get-quiz-rank")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        public async Task<ResponseDTO> GetQuizRank([FromBody] QuizRankDTO quizRankDTO)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Something Went Wrong",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+
+            return await _quizService.GetQuizRank(quizRankDTO);
+        }
+
     }
 }

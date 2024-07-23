@@ -151,6 +151,7 @@ namespace QuizWhiz.Application.Services
                 CreatedDate = DateTime.Now,
             };
 
+
             await _unitOfWork.UserRepository.CreateAsync(user);
             await _unitOfWork.SaveAsync();
 

@@ -54,7 +54,11 @@ namespace QuizWhiz.Application.Interface
         public Task<ResponseDTO> UpdateScore(string quizLink, string userName, int QuestionId, List<int> userAnswers);
 
         public Task<ResponseDTO> RegisterUser(string quizLink, string userName);
+        
         public Task<ResponseDTO> UpdateLeaderBoard(int QuizId);
+        
         public Task<ResponseDTO> GetDisqualifiedUsers(string quizLink);
+        
+        public Task<ResponseDTO> GetQuizRank(QuizRankDTO quizRankDTO);
     }
 }

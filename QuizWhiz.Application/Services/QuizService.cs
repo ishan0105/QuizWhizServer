@@ -1111,6 +1111,53 @@ namespace QuizWhiz.Application.Services
                 Data = disqualifiedUsers
             };
         }
-        
+
+        public async Task<ResponseDTO> GetQuizRank(QuizRankDTO quizRankDTO)
+        {
+            Quiz? quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(q => q.QuizLink == quizRankDTO.QuizLink);
+            User? user = await _unitOfWork.UserRepository.GetFirstOrDefaultAsync(u => u.Username == quizRankDTO.Username);
+
+            if(quiz == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Quiz not found",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+
+            if(user == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "User not found",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+
+            QuizParticipants quizParticipants = await _unitOfWork.QuizParticipantsRepository.GetFirstOrDefaultAsync(q => q.QuizId == quiz.QuizId && q.UserId == user.UserId);
+
+            if(quizParticipants == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Quiz participant does not exist",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+
+            return new()
+            {
+                IsSuccess = true,
+                Message = "Rank fetched successfully",
+                Data = quizParticipants.Rank,
+                StatusCode = HttpStatusCode.OK
+            };
+        }
+
+
     }
 }
