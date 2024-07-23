@@ -24,6 +24,12 @@ namespace QuizWhiz.DataAccess.Interfaces
 
         public IBaseRepository<QuizParticipants> QuizParticipantsRepository { get; set; }
 
+        public IBaseRepository<UserLifeline> UserLifelineRepository { get; set; }
+
+        public IBaseRepository<UserCoins> UserCoinsRepository { get; set; }
+
+        public IBaseRepository<Lifeline> LifelineRepository { get; set; }
+
         public Task SaveAsync();
     }
 }

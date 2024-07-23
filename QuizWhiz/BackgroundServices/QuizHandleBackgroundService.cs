@@ -11,6 +11,7 @@ using Timer = System.Threading.Timer;
 using Microsoft.AspNetCore.SignalR;
 using QuizWhiz.Application.DTOs.Response;
 using QuizWhiz.Domain.Entities;
+using QuizWhiz.DataAccess.Interfaces;
 
 public class QuizHandleBackgroundService : BackgroundService
 {
@@ -87,7 +88,6 @@ public class QuizHandleBackgroundService : BackgroundService
         {
             ++TimerSeconds;
             _logger.LogInformation($"Timed Hosted Service is working. Timer seconds: {TimerSeconds}");
-
             if (TimerSeconds > 300 && Timer)
             {
                 Timer = false;
@@ -108,14 +108,23 @@ public class QuizHandleBackgroundService : BackgroundService
             else
             {
                 
+                var quizService = scope.ServiceProvider.GetRequiredService<IQuizService>();
+                var _unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
                 if (QuestionNo >= _questions.Count || QuestionNo < 0)
                 {
+                    var quiz = await quizService.GetQuiz(_quizLink);
+                    var quizData = quiz.Data as Quiz;
+                    if (quizData == null)
+                    {
+                        await _quizServiceManager.StopQuizService(_quizLink);
+                        return;
+                    }
+                    await quizService.UpdateLeaderBoard(quizData.QuizId);
                     await _quizServiceManager.StopQuizService(_quizLink);
                     return;
                 }
 
                 var Question = _questions.ElementAt(QuestionNo);
-                var quizService = scope.ServiceProvider.GetRequiredService<IQuizService>();
                 var CorrectAnswer = await quizService.GetCorrectAnswer(Question.QuestionId);
                 var disqualifiedUsers = await quizService.GetDisqualifiedUsers(_quizLink);
                 List<string> options = new List<string>();

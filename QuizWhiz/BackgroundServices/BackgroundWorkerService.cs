@@ -3,6 +3,7 @@ using System.Threading;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using QuizWhiz.Application.Interface;
+using QuizWhiz.Application.Services;
 using QuizWhiz.DataAccess.Interfaces;
 using QuizWhiz.Domain.Entities;
 
@@ -37,7 +38,7 @@ public class BackgroundWorkerService : BackgroundService
                 var _unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
                 List<Quiz> quizzes = await _unitOfWork.QuizRepository.GetAll();
-
+                var quizService = scope.ServiceProvider.GetRequiredService<IQuizService>();
                 foreach (var quiz in quizzes)
                 {
                   
@@ -46,12 +47,13 @@ public class BackgroundWorkerService : BackgroundService
                         quiz.StatusId = 3;
                     }
 
-                    DateTime completedDateTime = quiz.ScheduledDate.AddSeconds(quiz.TotalQuestion*20+1);
+                   /* DateTime completedDateTime = quiz.ScheduledDate.AddSeconds(quiz.TotalQuestion*20+1);
 
-                    if (DateTime.Now >= completedDateTime)
+                    if (DateTime.Now >= completedDateTime && quiz.StatusId == 3)
                     {
                         quiz.StatusId = 4;
-                    }
+                        await quizService.UpdateLeaderBoard(quiz.QuizId);
+                    }*/
                 }
 
                 await _unitOfWork.SaveAsync();
