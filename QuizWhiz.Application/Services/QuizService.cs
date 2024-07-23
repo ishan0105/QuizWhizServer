@@ -922,7 +922,38 @@ namespace QuizWhiz.Application.Services
                 Data = IsCorrect
             };
         }
-        public async Task<ResponseDTO> UpdateLeaderBoard(int QuizId)
+        public async Task<ResponseDTO> GetQuiz(string quizLink)
+        {
+            if (quizLink == null || quizLink == "")
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Quiz not found!!",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            Quiz? quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(q => q.QuizLink == quizLink);
+            if(quiz == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Quiz not found!!",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+
+            return new()
+            {
+                IsSuccess = true,
+                Message = "Quiz found!!",
+                Data = quiz,
+                StatusCode = HttpStatusCode.OK
+            };
+        }
+            public async Task<ResponseDTO> UpdateLeaderBoard(int QuizId)
         {
             if (QuizId == 0)
             {
