@@ -11,6 +11,10 @@ using Timer = System.Threading.Timer;
 using Microsoft.AspNetCore.SignalR;
 using QuizWhiz.Application.DTOs.Response;
 using QuizWhiz.Domain.Entities;
+using QuizWhiz.DataAccess.Interfaces;
+using QuizWhiz.Application.DTOs.Request;
+using Microsoft.EntityFrameworkCore;
+using QuizWhiz.Application.Services;
 
 public class QuizHandleBackgroundService : BackgroundService
 {
@@ -24,7 +28,7 @@ public class QuizHandleBackgroundService : BackgroundService
     private int TimerSeconds = 0;
     private bool Timer = true;
     private bool IsMethodRunnigFistTime = false;
-    public List<GetQuestionsDTO> _questions=new List<GetQuestionsDTO>();
+    public List<GetQuestionsDTO> _questions = new List<GetQuestionsDTO>();
     public int QuestionNo = 0;
 
     public QuizHandleBackgroundService(ILogger<QuizHandleBackgroundService> logger, string quizLink, IServiceScopeFactory serviceScopeFactory, IHubContext<QuizHub> hubContext, QuizServiceManager quizServiceManager)
@@ -38,11 +42,9 @@ public class QuizHandleBackgroundService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        /*_logger.LogInformation("Quiz {QuizId} BackgroundService is starting.", _quizId);*/
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            /*_logger.LogInformation("Quiz {QuizId} is active.", _quizId);*/
             using (var scope = _serviceScopeFactory.CreateScope())
             {
                 if (!IsMethodRunnigFistTime)
@@ -57,7 +59,7 @@ public class QuizHandleBackgroundService : BackgroundService
                     if (QuizScheduleTime <= DateTime.Now)
                     {
                         Timer = false;
-                        var CurrentQuiz =  DateTime.Now- ContestStartTime ;
+                        var CurrentQuiz = DateTime.Now - ContestStartTime;
                         double QuizNo = Math.Ceiling(CurrentQuiz.Seconds * 1.0 / 20.0);
                         QuestionNo = (int)QuizNo - 1;
                         var CurrentSecond = CurrentQuiz.Seconds % 20;
@@ -72,7 +74,7 @@ public class QuizHandleBackgroundService : BackgroundService
                     }
                     if (Questions != null)
                     {
-                        _questions =  Questions.Data as List<GetQuestionsDTO> ;
+                        _questions = Questions.Data as List<GetQuestionsDTO>;
                     }
                 }
                 QuizHandleMethod(null);
@@ -89,7 +91,6 @@ public class QuizHandleBackgroundService : BackgroundService
         {
             ++TimerSeconds;
             _logger.LogInformation($"Timed Hosted Service is working. Timer seconds: {TimerSeconds}");
-
             if (TimerSeconds > 300 && Timer)
             {
                 Timer = false;
@@ -97,6 +98,7 @@ public class QuizHandleBackgroundService : BackgroundService
             }
             if (Timer)
             {
+                
                 DateTime notifyTime = QuizScheduleTime.AddSeconds(-300);
                 var currentTime = DateTime.Now;
                 var remainingTime = QuizScheduleTime - currentTime;
@@ -109,21 +111,40 @@ public class QuizHandleBackgroundService : BackgroundService
             }
             else
             {
+                
+                var quizService = scope.ServiceProvider.GetRequiredService<IQuizService>();
+                var _unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
                 if (QuestionNo >= _questions.Count || QuestionNo < 0)
                 {
+                    var quiz = await quizService.GetQuiz(_quizLink);
+                    var quizData = quiz.Data as Quiz;
+                    if (quizData == null)
+                    {
+                        await _quizServiceManager.StopQuizService(_quizLink);
+                        return;
+                    }
+                    quizData.StatusId = 4;
+                    await quizService.UpdateLeaderBoard(quizData.QuizId);
+                    await _unitOfWork.SaveAsync();
                     await _quizServiceManager.StopQuizService(_quizLink);
                     return;
                 }
 
                 var Question = _questions.ElementAt(QuestionNo);
-                var quizService = scope.ServiceProvider.GetRequiredService<IQuizService>();
                 var CorrectAnswer = await quizService.GetCorrectAnswer(Question.QuestionId);
+                var disqualifiedUsers = await quizService.GetDisqualifiedUsers(_quizLink);
+                /*var allUsers= quizService.GetConnectedUsers();*/
                 List<string> options = new List<string>();
-                
+                if (Question == null)
+                {
+                    await _quizServiceManager.StopQuizService(_quizLink);
+                    return;
+                }
                 foreach (var ele in Question.Options)
                 {
                     options.Add(ele.OptionText!.ToString());
                 }
+
                 SendQuestionDTO sendQuestionDTO = new SendQuestionDTO()
                 {
                     Question = Question.Question,
@@ -132,7 +153,11 @@ public class QuizHandleBackgroundService : BackgroundService
 
                 if (TimerSeconds == 1)
                 {
-                    await _hubContext.Clients.All.SendAsync($"ReceiveQuestion_{_quizLink}", QuestionNo + 1, sendQuestionDTO, TimerSeconds);
+                  /*  foreach (var userId in disqualifiedUsers.Data as List<string>)
+                    {
+                        await _hubContext.Clients.User(userId).SendAsync($"IsDisqualified_{_quizLink}", true);
+                    }*/
+                    await _hubContext.Clients.All.SendAsync($"ReceiveQuestion_{_quizLink}", QuestionNo + 1, sendQuestionDTO, TimerSeconds, disqualifiedUsers);
                 }
                 else if (TimerSeconds == 17)
                 {
@@ -147,7 +172,6 @@ public class QuizHandleBackgroundService : BackgroundService
                         ++QuestionNo;
                     }
                 }
-
             }
         }
     }

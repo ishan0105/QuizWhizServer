@@ -37,6 +37,7 @@ namespace QuizWhiz.Application.Services
 
         public async Task<ResponseDTO> LoginUserAsync(LoginUserDTO loginUserDTO)
         {
+            bool isLoggedInEarlier = false;
             var user = (from u in _unitOfWork.UserRepository.GetTable()
                         join ur in _unitOfWork.UserRoleRepository.GetTable()
                         on u.RoleId equals ur.RoleId
@@ -47,9 +48,24 @@ namespace QuizWhiz.Application.Services
                             u.Username,
                             u.Email,
                             u.PasswordHash,
+                            u.isLoggedInEarlier,
                             ur.RoleId,
                             ur.RoleName,
                         }).FirstOrDefault();
+
+            User? user1 = await _unitOfWork.UserRepository.GetFirstOrDefaultAsync(u => u.Email == loginUserDTO.Email);
+
+            if(user1 == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "User not found",
+                    Data = null,
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+
 
             if (user == null || !_hashingHelper.VerifyPassword(loginUserDTO.Password, user.PasswordHash))
             {
@@ -61,11 +77,17 @@ namespace QuizWhiz.Application.Services
                 };
             }
 
+            if(user1.isLoggedInEarlier == false)
+            {
+                user1.isLoggedInEarlier = true;
+                await _unitOfWork.SaveAsync();
+            }
+
             return new ResponseDTO()
             {
                 IsSuccess = true,
                 Message = "Logged In Successfully!!",
-                Data = _jwtHelper.GenerateJwtToken(user.Email, user.RoleName, user.Username),
+                Data = _jwtHelper.GenerateJwtToken(user.Email, user.RoleName, user.Username, user.isLoggedInEarlier),
                 StatusCode = HttpStatusCode.OK
             };
 
@@ -101,7 +123,7 @@ namespace QuizWhiz.Application.Services
             {
                 IsSuccess = true,
                 Message = "Admin Logged In Successfully!!",
-                Data = _jwtHelper.GenerateJwtToken(admin.Email, admin.RoleName, admin.Username),
+                Data = _jwtHelper.GenerateJwtToken(admin.Email, admin.RoleName, admin.Username, true),
                 StatusCode = HttpStatusCode.OK
             };
         }
