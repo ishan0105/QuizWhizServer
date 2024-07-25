@@ -34,5 +34,10 @@ namespace QuizWhiz.DataAccess.Data
 
         public DbSet<QuizParticipants> QuizParticipants { get; set; }
 
+        public DbSet<UserLifeline> UserLifeline { get; set; }
+
+        public DbSet<UserCoins> UserCoins { get; set; }
+
+        public DbSet<Lifeline> Lifeline { get; set; }
     }
 }

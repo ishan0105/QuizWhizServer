@@ -30,7 +30,7 @@ public class QuizStartBackgroundService : BackgroundService
               
                 foreach (var Link in QuizLinks)
                 {
-                    if (Link.Key == 4) _quizServiceManager.StopQuizService(Link.Value);
+                    if (Link.Key == 4) await _quizServiceManager.StopQuizService(Link.Value);
                     else _quizServiceManager.StartQuizService(Link.Value);
                 }
 

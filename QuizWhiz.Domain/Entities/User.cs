@@ -66,6 +66,9 @@ namespace QuizWhiz.Domain.Entities
 
         public string ProfileImageURL { get; set; } = string.Empty;
 
+        [Required]
+        public bool isLoggedInEarlier { get; set; } = false;
+
         // Foreign key
         [ForeignKey("RoleId")]
         public int RoleId { get; set; } = 2;

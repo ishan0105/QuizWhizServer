@@ -124,7 +124,6 @@ namespace QuizWhiz.Application.Services
                         && (getQuizFilterDTO.StatusId == 0 || q.StatusId == getQuizFilterDTO.StatusId)
                         && (getQuizFilterDTO.DifficultyId == 0 || q.DifficultyId == getQuizFilterDTO.DifficultyId)
                         && (getQuizFilterDTO.CategoryId == 0 || q.CategoryId == getQuizFilterDTO.CategoryId)
-                        orderby q.ScheduledDate ascending
                         select new
                         {
                             q.QuizId,
@@ -139,6 +138,33 @@ namespace QuizWhiz.Application.Services
                             q.TotalQuestion,
                             q.WinningAmount
                         };
+
+            if(!string.IsNullOrEmpty(getQuizFilterDTO.FilterBy))
+            {
+                switch(getQuizFilterDTO.FilterBy.ToLower())
+                {
+                    case "title":
+                        query = getQuizFilterDTO.IsAscending ? query.OrderBy(q => q.Title) : query.OrderByDescending(q => q.Title);
+                        break;
+                    case "totalquestions":
+                        query = getQuizFilterDTO.IsAscending ? query.OrderBy(q => q.TotalQuestion) : query.OrderByDescending(q => q.TotalQuestion);
+                        break;
+                    case "totalmarks":
+                        query = getQuizFilterDTO.IsAscending ? query.OrderBy(q => q.TotalMarks) : query.OrderByDescending(q => q.TotalMarks);
+                        break;
+                    case "difficulty":
+                        query = getQuizFilterDTO.IsAscending ? query.OrderBy(q => q.DifficultyId) : query.OrderByDescending(q => q.DifficultyId);
+                        break;
+                    default:
+                        query = query.OrderBy(q => q.ScheduledDate); 
+                        break;
+                }
+            }
+
+            else
+            {
+                query = query.OrderBy(q => q.ScheduledDate); 
+            }
 
             var quizzes = await query.ToListAsync().ConfigureAwait(false);
 
@@ -729,7 +755,6 @@ namespace QuizWhiz.Application.Services
                 {
                     activeQuizzes.Add(new KeyValuePair<int, string>(4, Quiz.QuizLink!));
                 }
-
             }
 
             return activeQuizzes;
@@ -896,7 +921,38 @@ namespace QuizWhiz.Application.Services
                 Data = IsCorrect
             };
         }
-        public async Task<ResponseDTO> UpdateLeaderBoard(int QuizId)
+        public async Task<ResponseDTO> GetQuiz(string quizLink)
+        {
+            if (quizLink == null || quizLink == "")
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Quiz not found!!",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            Quiz? quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(q => q.QuizLink == quizLink);
+            if(quiz == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Quiz not found!!",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+
+            return new()
+            {
+                IsSuccess = true,
+                Message = "Quiz found!!",
+                Data = quiz,
+                StatusCode = HttpStatusCode.OK
+            };
+        }
+            public async Task<ResponseDTO> UpdateLeaderBoard(int QuizId)
         {
             if (QuizId == 0)
             {
