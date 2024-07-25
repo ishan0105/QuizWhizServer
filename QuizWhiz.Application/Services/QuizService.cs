@@ -562,40 +562,99 @@ namespace QuizWhiz.Application.Services
             var username = token.Username;
 
             var user = (await _unitOfWork.UserRepository.GetFirstOrDefaultAsync(u => u.Username == username));
-
-            if (question == null || user == null)
+            if (user == null)
             {
                 return new()
                 {
                     IsSuccess = false,
-                    Message = "Question not found!!",
+                    Message = "Not Access!!",
                     StatusCode = HttpStatusCode.BadRequest,
                 };
             }
-
-            question.QuestionText = updateQuestionDetailsDTO.QuestionText;
-
-            List<Option> options = await _unitOfWork.OptionRepository.GetWhereAsync(u => u.QuestionId == updateQuestionDetailsDTO.QuestionId);
-            options = options.OrderBy(u => u.OptionNo).ToList();
-
-            if (question.QuestionTypeId == 1 || question.QuestionTypeId == 2)
+            if (updateQuestionDetailsDTO.QuestionId == 0 && question == null)
             {
-                int count = 0;
-                foreach (var option in options)
+                Question newQuestion = new()
                 {
-                    option.OptionText = updateQuestionDetailsDTO.Options.ElementAt(count).OptionText;
-                    option.IsAnswer = updateQuestionDetailsDTO.Options.ElementAt(count).IsAnswer;
-                    count++;
+                    QuizId = updateQuestionDetailsDTO.QuizId,
+                    QuestionTypeId = updateQuestionDetailsDTO.QuestionTypeId,
+                    QuestionText = updateQuestionDetailsDTO.QuestionText,
+                    IsDeleted = false
+                };
+
+                await _unitOfWork.QuestionRepository.CreateAsync(newQuestion);
+                await _unitOfWork.SaveAsync();
+
+                if (updateQuestionDetailsDTO.QuestionTypeId == 1 || updateQuestionDetailsDTO.QuestionTypeId == 2)
+                {
+                    int count = 0;
+                    foreach (var optionList in updateQuestionDetailsDTO.Options)
+                    {
+                        count++;
+                        Option option = new()
+                        {
+                            QuestionId = newQuestion.QuestionId,
+                            OptionText = optionList.OptionText,
+                            IsAnswer = optionList.IsAnswer,
+                            OptionNo = count,
+                        };
+
+                        await _unitOfWork.OptionRepository.CreateAsync(option);
+                        await _unitOfWork.SaveAsync();
+                    }
                 }
+                else if (updateQuestionDetailsDTO.QuestionTypeId == 3)
+                {
+                    Option option1 = new()
+                    {
+                        QuestionId = newQuestion.QuestionId,
+                        OptionText = "True",
+                        IsAnswer = updateQuestionDetailsDTO.IsTrue,
+                        OptionNo = 1,
+                    };
+
+                    await _unitOfWork.OptionRepository.CreateAsync(option1);
+
+                    Option option2 = new()
+                    {
+                        QuestionId = newQuestion.QuestionId,
+                        OptionText = "False",
+                        IsAnswer = !updateQuestionDetailsDTO.IsTrue,
+                        OptionNo = 2,
+                    };
+
+                    await _unitOfWork.OptionRepository.CreateAsync(option2);
+                    await _unitOfWork.SaveAsync();
+                }
+
             }
-            else if (question.QuestionTypeId == 3)
+            else
             {
-                options.ElementAt(0).IsAnswer = updateQuestionDetailsDTO.IsTrue;
-                options.ElementAt(1).IsAnswer = !updateQuestionDetailsDTO.IsTrue;
+
+                question.QuestionText = updateQuestionDetailsDTO.QuestionText;
+
+                List<Option> options = await _unitOfWork.OptionRepository.GetWhereAsync(u => u.QuestionId == updateQuestionDetailsDTO.QuestionId);
+                options = options.OrderBy(u => u.OptionNo).ToList();
+
+                if (question.QuestionTypeId == 1 || question.QuestionTypeId == 2)
+                {
+                    int count = 0;
+                    foreach (var option in options)
+                    {
+                        option.OptionText = updateQuestionDetailsDTO.Options.ElementAt(count).OptionText;
+                        option.IsAnswer = updateQuestionDetailsDTO.Options.ElementAt(count).IsAnswer;
+                        count++;
+                    }
+                }
+                else if (question.QuestionTypeId == 3)
+                {
+                    options.ElementAt(0).IsAnswer = updateQuestionDetailsDTO.IsTrue;
+                    options.ElementAt(1).IsAnswer = !updateQuestionDetailsDTO.IsTrue;
+                }
+
+                await _unitOfWork.SaveAsync();
+
+              
             }
-
-            await _unitOfWork.SaveAsync();
-
             return new()
             {
                 IsSuccess = true,
