@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using QuizWhiz.DataAccess.Data;
@@ -11,9 +12,11 @@ using QuizWhiz.DataAccess.Data;
 namespace QuizWhiz.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240722085543_AddedColumnInUsersTable")]
+    partial class AddedColumnInUsersTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,26 +24,6 @@ namespace QuizWhiz.DataAccess.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("QuizWhiz.Domain.Entities.Lifeline", b =>
-                {
-                    b.Property<int>("LifelineId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("LifelineId"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("Value")
-                        .HasColumnType("integer");
-
-                    b.HasKey("LifelineId");
-
-                    b.ToTable("Lifeline");
-                });
 
             modelBuilder.Entity("QuizWhiz.Domain.Entities.Option", b =>
                 {
@@ -242,9 +225,6 @@ namespace QuizWhiz.DataAccess.Migrations
                     b.Property<int>("CorrectQuestions")
                         .HasColumnType("integer");
 
-                    b.Property<bool>("IsDisqualified")
-                        .HasColumnType("boolean");
-
                     b.Property<int>("QuizId")
                         .HasColumnType("integer");
 
@@ -374,53 +354,6 @@ namespace QuizWhiz.DataAccess.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("QuizWhiz.Domain.Entities.UserCoins", b =>
-                {
-                    b.Property<int>("UserCoinsId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("UserCoinsId"));
-
-                    b.Property<int>("NoOfCoins")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("UserCoinsId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserCoins");
-                });
-
-            modelBuilder.Entity("QuizWhiz.Domain.Entities.UserLifeline", b =>
-                {
-                    b.Property<int>("UserLifelineId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("UserLifelineId"));
-
-                    b.Property<int>("LifelineCount")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("LifelineId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("UserLifelineId");
-
-                    b.HasIndex("LifelineId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserLifeline");
-                });
-
             modelBuilder.Entity("QuizWhiz.Domain.Entities.UserRole", b =>
                 {
                     b.Property<int>("RoleId")
@@ -538,36 +471,6 @@ namespace QuizWhiz.DataAccess.Migrations
                         .IsRequired();
 
                     b.Navigation("Role");
-                });
-
-            modelBuilder.Entity("QuizWhiz.Domain.Entities.UserCoins", b =>
-                {
-                    b.HasOne("QuizWhiz.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("QuizWhiz.Domain.Entities.UserLifeline", b =>
-                {
-                    b.HasOne("QuizWhiz.Domain.Entities.Lifeline", "Lifeline")
-                        .WithMany()
-                        .HasForeignKey("LifelineId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("QuizWhiz.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Lifeline");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("QuizWhiz.Domain.Entities.UserRole", b =>
