@@ -22,5 +22,6 @@ namespace QuizWhiz.Domain.Entities
 
         [ForeignKey(nameof(UserId))]
         public User? User { get; set; }
+       
     }
 }

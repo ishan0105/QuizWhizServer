@@ -34,6 +34,9 @@ namespace QuizWhiz.DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("Value")
+                        .HasColumnType("integer");
+
                     b.HasKey("LifelineId");
 
                     b.ToTable("Lifeline");
