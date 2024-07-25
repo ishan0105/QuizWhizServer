@@ -257,9 +257,11 @@ namespace QuizWhiz.API.Controllers
                     StatusCode = HttpStatusCode.BadRequest
                 };
             }
-
+            
             return await _quizService.UpdateQuizQuestionAsync(updateQuestionDetailsDTO);
         }
+
+    
 
         [HttpGet("delete-quiz-question")]
         [ProducesResponseType(200)]
