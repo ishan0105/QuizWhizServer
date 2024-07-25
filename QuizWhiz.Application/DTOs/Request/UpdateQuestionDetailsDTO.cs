@@ -15,5 +15,9 @@ namespace QuizWhiz.Application.DTOs.Request
         public List<OptionsDTO> Options { get; set; } = [];
 
         public bool IsTrue { get; set; } = false;
+
+        public int QuestionTypeId { get; set; }
+
+        public int QuizId {  get; set; }
     }
 }

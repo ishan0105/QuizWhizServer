@@ -257,9 +257,11 @@ namespace QuizWhiz.API.Controllers
                     StatusCode = HttpStatusCode.BadRequest
                 };
             }
-
+            
             return await _quizService.UpdateQuizQuestionAsync(updateQuestionDetailsDTO);
         }
+
+    
 
         [HttpGet("delete-quiz-question")]
         [ProducesResponseType(200)]
@@ -335,6 +337,23 @@ namespace QuizWhiz.API.Controllers
 
             return await _quizService.GetQuizWinners(quizLink);
         }
-        
+        [HttpGet("get-coins-lifeline")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        public async Task<ResponseDTO> GetCoinsAndLifeLineCount([FromQuery] string userName)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Something Went Wrong",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+
+            return await _quizService.GetCoinsAndLifeLineCount(userName);
+        }
     }
 }
