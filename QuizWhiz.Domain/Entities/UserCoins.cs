@@ -21,7 +21,7 @@ namespace QuizWhiz.Domain.Entities
         public required int NoOfCoins { get; set; }
 
         [ForeignKey(nameof(UserId))]
-        public required User User { get; set; }
+        public User? User { get; set; }
        
     }
 }
