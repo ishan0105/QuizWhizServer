@@ -12,6 +12,9 @@ using Microsoft.AspNetCore.SignalR;
 using QuizWhiz.Application.DTOs.Response;
 using QuizWhiz.Domain.Entities;
 using QuizWhiz.DataAccess.Interfaces;
+using QuizWhiz.Application.DTOs.Request;
+using Microsoft.EntityFrameworkCore;
+using QuizWhiz.Application.Services;
 
 public class QuizHandleBackgroundService : BackgroundService
 {
@@ -95,6 +98,7 @@ public class QuizHandleBackgroundService : BackgroundService
             }
             if (Timer)
             {
+                
                 DateTime notifyTime = QuizScheduleTime.AddSeconds(-300);
                 var currentTime = DateTime.Now;
                 var remainingTime = QuizScheduleTime - currentTime;
@@ -119,7 +123,9 @@ public class QuizHandleBackgroundService : BackgroundService
                         await _quizServiceManager.StopQuizService(_quizLink);
                         return;
                     }
+                    quizData.StatusId = 4;
                     await quizService.UpdateLeaderBoard(quizData.QuizId);
+                    await _unitOfWork.SaveAsync();
                     await _quizServiceManager.StopQuizService(_quizLink);
                     return;
                 }
@@ -127,6 +133,7 @@ public class QuizHandleBackgroundService : BackgroundService
                 var Question = _questions.ElementAt(QuestionNo);
                 var CorrectAnswer = await quizService.GetCorrectAnswer(Question.QuestionId);
                 var disqualifiedUsers = await quizService.GetDisqualifiedUsers(_quizLink);
+                /*var allUsers= quizService.GetConnectedUsers();*/
                 List<string> options = new List<string>();
                 if (Question == null)
                 {
@@ -146,6 +153,10 @@ public class QuizHandleBackgroundService : BackgroundService
 
                 if (TimerSeconds == 1)
                 {
+                  /*  foreach (var userId in disqualifiedUsers.Data as List<string>)
+                    {
+                        await _hubContext.Clients.User(userId).SendAsync($"IsDisqualified_{_quizLink}", true);
+                    }*/
                     await _hubContext.Clients.All.SendAsync($"ReceiveQuestion_{_quizLink}", QuestionNo + 1, sendQuestionDTO, TimerSeconds, disqualifiedUsers);
                 }
                 else if (TimerSeconds == 17)
