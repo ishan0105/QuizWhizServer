@@ -829,7 +829,6 @@ namespace QuizWhiz.Application.Services
                 {
                     activeQuizzes.Add(new KeyValuePair<int, string>(4, Quiz.QuizLink!));
                 }
-
             }
 
             return activeQuizzes;
@@ -910,7 +909,7 @@ namespace QuizWhiz.Application.Services
                 {
                     IsSuccess = false,
                     Message = "Questions not found!!",
-                    StatusCode = HttpStatusCode.BadRequest,
+                    StatusCode = HttpStatusCode.OK,
                 };
             }
             List<Option> Options = await _unitOfWork.OptionRepository.GetWhereAsync(o => o.QuestionId == QuestionId && o.IsAnswer == true);
@@ -953,7 +952,7 @@ namespace QuizWhiz.Application.Services
                 {
                     IsSuccess = false,
                     Message = "User not found",
-                    StatusCode = HttpStatusCode.BadRequest,
+                    StatusCode = HttpStatusCode.OK,
                 };
             }
 
@@ -965,7 +964,7 @@ namespace QuizWhiz.Application.Services
                 {
                     IsSuccess = false,
                     Message = "Something Went Wrong",
-                    StatusCode = HttpStatusCode.BadRequest,
+                    StatusCode = HttpStatusCode.OK,
                 };
             }
             if (quizParticipants.IsDisqualified)
@@ -974,7 +973,7 @@ namespace QuizWhiz.Application.Services
                 {
                     IsSuccess = false,
                     Message = "User has been disqualified",
-                    StatusCode = HttpStatusCode.BadRequest,
+                    StatusCode = HttpStatusCode.OK,
                 };
             }
             if (IsCorrect)
@@ -1351,6 +1350,72 @@ namespace QuizWhiz.Application.Services
         public void RemoveUser(string connectionId)
         {
             ConnectedUsers.TryRemove(connectionId, out _);
+        }
+
+        public async Task<ResponseDTO> GetUserScoreboard(string quizLink, string username)
+        {
+            if (username == null || quizLink == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "User Not Found",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            User? user = await _unitOfWork.UserRepository.GetFirstOrDefaultAsync(r => r.Username == username);
+
+            if (user == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "User Not Found",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            Quiz? quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(u => u.QuizLink == quizLink);
+
+            if (quiz == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Quiz Not Found",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            QuizParticipants? quizParticipent = await _unitOfWork.QuizParticipantsRepository.GetFirstOrDefaultAsync(u => u.UserId == user.UserId && u.QuizId == quiz.QuizId);
+
+            if (quizParticipent == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "User Did not participate!",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            UserScoreboardDTO userScoreboardDTO = new UserScoreboardDTO()
+            {
+                Username = username,
+                Score = quizParticipent.TotalScore,
+                TotalScore = quiz.TotalQuestion,
+                WinningAmount = quizParticipent.WinningAmount,
+                Rank = quizParticipent.Rank,
+            };
+
+            return new()
+            {
+                IsSuccess = true,
+                Message = "Data Fetched Successfully",
+                StatusCode = HttpStatusCode.OK,
+                Data = userScoreboardDTO
+            };
         }
     }
 }

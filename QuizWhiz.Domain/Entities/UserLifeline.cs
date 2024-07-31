@@ -25,9 +25,9 @@ namespace QuizWhiz.Domain.Entities
         public required int LifelineCount { get; set; }
 
         [ForeignKey(nameof(UserId))]
-        public  User? User { get; set; }
+        public User? User { get; set; }
 
         [ForeignKey(nameof(LifelineId))]
-        public  Lifeline? Lifeline { get; set; }
+        public Lifeline? Lifeline { get; set; }
     }
 }
