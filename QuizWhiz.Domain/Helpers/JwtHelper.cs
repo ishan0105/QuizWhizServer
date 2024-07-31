@@ -28,14 +28,13 @@ namespace QuizWhiz.Domain.Helpers
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public string GenerateJwtToken(string email, string role, string username, bool isLoggedInEarlier)
+        public string GenerateJwtToken(string email, string role, string username)
         {
             var claims = new[]
            {
                 new Claim("Email", email),
                 new Claim("Role", role),
                 new Claim ("Username",username),
-                new Claim ("IsLoggedInEarlier", isLoggedInEarlier.ToString())
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
@@ -45,7 +44,7 @@ namespace QuizWhiz.Domain.Helpers
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(60),
+                expires: DateTime.Now.AddMinutes(120),
                 signingCredentials: creds);
 
             return new JwtSecurityTokenHandler().WriteToken(token);

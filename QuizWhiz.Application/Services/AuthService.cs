@@ -37,7 +37,6 @@ namespace QuizWhiz.Application.Services
 
         public async Task<ResponseDTO> LoginUserAsync(LoginUserDTO loginUserDTO)
         {
-            bool isLoggedInEarlier = false;
             var user = (from u in _unitOfWork.UserRepository.GetTable()
                         join ur in _unitOfWork.UserRoleRepository.GetTable()
                         on u.RoleId equals ur.RoleId
@@ -61,7 +60,6 @@ namespace QuizWhiz.Application.Services
                 {
                     IsSuccess = false,
                     Message = "User not found",
-                    Data = null,
                     StatusCode = HttpStatusCode.BadRequest
                 };
             }
@@ -87,7 +85,7 @@ namespace QuizWhiz.Application.Services
             {
                 IsSuccess = true,
                 Message = "Logged In Successfully!!",
-                Data = _jwtHelper.GenerateJwtToken(user.Email, user.RoleName, user.Username, user.isLoggedInEarlier),
+                Data = _jwtHelper.GenerateJwtToken(user.Email, user.RoleName, user.Username),
                 StatusCode = HttpStatusCode.OK
             };
 
@@ -123,7 +121,7 @@ namespace QuizWhiz.Application.Services
             {
                 IsSuccess = true,
                 Message = "Admin Logged In Successfully!!",
-                Data = _jwtHelper.GenerateJwtToken(admin.Email, admin.RoleName, admin.Username, true),
+                Data = _jwtHelper.GenerateJwtToken(admin.Email, admin.RoleName, admin.Username),
                 StatusCode = HttpStatusCode.OK
             };
         }

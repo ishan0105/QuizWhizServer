@@ -38,6 +38,7 @@ public class QuizHub : Hub
         var result = await _quizService.UpdateScore(quizLink, userName, QuestionId, userAnswers);
         await Clients.All.SendAsync("ResponseOfUpdateScore", result);
     }
+
     public async Task RegisterUser(string quizLink, string userName)
     {
         _userConnections.AddOrUpdate(
@@ -51,6 +52,12 @@ public class QuizHub : Hub
         _quizService.AddUser(Context.ConnectionId, userName);
         var result = await _quizService.RegisterUser(quizLink, userName);
         await Clients.All.SendAsync("RegisterUserResponse", result);
+    }
+
+    public async Task UserScoreboard(string quizLink, string username)
+    {
+        var result = await _quizService.GetUserScoreboard(quizLink, username);
+        await Clients.All.SendAsync($"ResponseOfUserScoreboard_{username}", result);
     }
 
 }
