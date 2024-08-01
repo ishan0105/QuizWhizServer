@@ -165,10 +165,9 @@ namespace QuizWhiz.Application.Services
                         break;
                 }
             }
-
             else
             {
-                query = query.OrderBy(q => q.ScheduledDate); 
+                query = getQuizFilterDTO.IsAscending ? query.OrderBy(q => q.ScheduledDate) : query.OrderByDescending(q => q.ScheduledDate);
             }
 
             var quizzes = await query.ToListAsync().ConfigureAwait(false);

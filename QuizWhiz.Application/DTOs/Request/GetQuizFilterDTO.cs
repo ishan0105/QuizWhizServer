@@ -23,7 +23,7 @@ namespace QuizWhiz.Application.DTOs.Request
         [Required]
         public required int CurrentPage { get; set; }
 
-        public bool IsAscending { get; set; } = false;
+        public bool IsAscending { get; set; } = true;
 
         public string FilterBy { get; set; } = string.Empty;
     }
