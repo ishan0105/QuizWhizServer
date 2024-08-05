@@ -21,13 +21,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IQuizService, QuizService>();
-builder.Services.AddScoped<HashingHelper>();
-builder.Services.AddScoped<JwtHelper>();
-builder.Services.AddScoped<EmailSenderHelper>();
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddHttpContextAccessor();
 builder.Services.AddWebSockets(options =>
 {
 });
@@ -58,18 +51,6 @@ builder.Services.AddScoped<EmailSenderHelper>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowReactApp", policy =>
-    {
-        policy.WithOrigins("*")
-              .AllowAnyHeader()
-              .AllowAnyMethod();
-    });
-});
-
-/*builder.Services.AddHostedService<QuizTimerBackgroundService>();*/
-
 builder.Services.AddDistributedMemoryCache();
 
 builder.Services.AddSession(options =>
@@ -78,6 +59,7 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy",

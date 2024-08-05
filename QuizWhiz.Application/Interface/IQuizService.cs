@@ -72,5 +72,13 @@ namespace QuizWhiz.Application.Interface
         public void AddUser(string connectionId, string userId);
 
         public void RemoveUser(string connectionId);
+
+        public Task<ResponseDTO> GetUserScoreboard(string quizLink, string username);
+
+        public Task<ResponseDTO> GetAdminLeaderboard(GetAdminLeaderboardDTO getAdminLeaderboardDTO);
+
+        public Task<ResponseDTO> GetQuizParticipantsCount(string quizLink);
+
+        public Task<ResponseDTO> GetUserLeaderboard(GetUserLeaderboardDTO getUserLeaderboardDTO);
     }
 }

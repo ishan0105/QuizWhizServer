@@ -39,7 +39,5 @@ namespace QuizWhiz.DataAccess.Data
         public DbSet<UserCoins> UserCoins { get; set; }
 
         public DbSet<Lifeline> Lifeline { get; set; }
-
-
     }
 }

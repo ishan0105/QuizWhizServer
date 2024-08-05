@@ -232,5 +232,24 @@ namespace QuizWhiz.API.Controllers
 
             return await _authService.SetRecordSizeAsync(recordSize);
         }
+
+        [HttpGet("change-leaderboard-record-size")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        public async Task<ResponseDTO> LeaderboardRecordSizeChange(int recordSize)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Something Went Wrong",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+
+            return await _authService.SetLeaderboardRecordSizeAsync(recordSize);
+        }
     }
 }

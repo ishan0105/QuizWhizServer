@@ -29,6 +29,7 @@ public class BackgroundWorkerService : BackgroundService
         _logger.LogInformation("Service Stopped.");
         await Task.CompletedTask;
     }
+    
     protected async override Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
