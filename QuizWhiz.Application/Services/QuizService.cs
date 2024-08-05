@@ -165,10 +165,9 @@ namespace QuizWhiz.Application.Services
                         break;
                 }
             }
-
             else
             {
-                query = query.OrderBy(q => q.ScheduledDate); 
+                query = getQuizFilterDTO.IsAscending ? query.OrderBy(q => q.ScheduledDate) : query.OrderByDescending(q => q.ScheduledDate);
             }
 
             var quizzes = await query.ToListAsync().ConfigureAwait(false);
@@ -1415,6 +1414,183 @@ namespace QuizWhiz.Application.Services
                 Message = "Data Fetched Successfully",
                 StatusCode = HttpStatusCode.OK,
                 Data = userScoreboardDTO
+            };
+        }
+
+        public async Task<ResponseDTO> GetAdminLeaderboard(GetAdminLeaderboardDTO getAdminLeaderboardDTO)
+        {
+            Quiz? quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(q => q.QuizLink == getAdminLeaderboardDTO.QuizLink);
+
+            if (quiz == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Quiz not found",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            List<QuizParticipants> listOfparticipant = await _unitOfWork.QuizParticipantsRepository.GetWhereAsync(r => r.QuizId == quiz.QuizId &&
+            (getAdminLeaderboardDTO.SearchedWord == "" || r.User.Username.Trim().ToLower().Contains(getAdminLeaderboardDTO.SearchedWord)));
+
+            List<ParticipantsDetailsDTO> quizParticipants = listOfparticipant.Select(qp => new ParticipantsDetailsDTO
+            {
+                username = _unitOfWork.UserRepository.GetFirstOrDefaultAsync(r => r.UserId == qp.UserId).Result.Username,
+                rank = qp.Rank,
+                priceWon = qp.WinningAmount,
+                score = qp.TotalScore
+            }).OrderBy(p => p.rank).ToList();
+
+
+            int recordSize = Int32.Parse(_configuration["LeaderboardRecords:Size"]!); ;
+            int totalCount = quizParticipants.Count;
+            int totalPage = (int)Math.Ceiling((double)totalCount / recordSize);
+
+            PaginationDTO paginationDTO = new()
+            {
+                TotalCount = totalCount,
+                TotalPages = totalPage,
+                CurrentPage = getAdminLeaderboardDTO.CurrentPage,
+                PageSize = getAdminLeaderboardDTO.PageSize,
+                RecordSize = recordSize
+            };
+
+            List<ParticipantsDetailsDTO> sendQuizLeaderboardDTO = quizParticipants
+            .Skip((getAdminLeaderboardDTO.CurrentPage - 1) * recordSize)
+            .Take(recordSize)
+            .ToList();
+
+            AdminLeaderboardResponseDTO response = new AdminLeaderboardResponseDTO()
+            {
+                Pagination = paginationDTO,
+                QuizParticipants = sendQuizLeaderboardDTO
+            };
+
+            return new()
+            {
+                IsSuccess = true,
+                Message = "Quiz Leaderboard fetched successfully",
+                StatusCode = HttpStatusCode.OK,
+                Data = response
+            };
+        }
+
+        public async Task<ResponseDTO> GetQuizParticipantsCount(string quizLink)
+        {
+
+            if (quizLink == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Quiz Not Found",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+            Quiz? quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(r => r.QuizLink == quizLink);
+            if (quiz == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Quiz Not Found",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+            List<QuizParticipants> quizParticipants = await _unitOfWork.QuizParticipantsRepository.GetWhereAsync(r => r.QuizId == quiz.QuizId);
+
+            var countOfParticipants = quizParticipants.Count();
+
+            return new()
+            {
+                IsSuccess = true,
+                Message = "Quiz Participants Fetched Successfully!",
+                StatusCode = HttpStatusCode.OK,
+                Data = countOfParticipants
+            };
+        }
+
+        public async Task<ResponseDTO> GetUserLeaderboard(GetUserLeaderboardDTO getUserLeaderboardDTO)
+       {
+            Quiz? quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(q => q.QuizLink == getUserLeaderboardDTO.QuizLink);
+
+            if (quiz == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Quiz not found",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+            List<QuizParticipants> quizParticipants = await _unitOfWork.QuizParticipantsRepository.GetWhereAsync(r => r.QuizId == quiz.QuizId
+            && (getUserLeaderboardDTO.SearchedWord == null || r.User.Username.Contains(getUserLeaderboardDTO.SearchedWord.Trim().ToLower()))
+            );
+
+            var participatedUsers = await _unitOfWork.QuizParticipantsRepository.GetWhereAsync(r => r.QuizId == quiz.QuizId);
+            var totalParticipants = participatedUsers.Count();
+            var userPersonalRank = 0;
+            var userPersonalScore = 0;
+
+
+            if (getUserLeaderboardDTO.Username != null)
+            {
+                User? user = await _unitOfWork.UserRepository.GetFirstOrDefaultAsync(r => r.Username == getUserLeaderboardDTO.Username);
+                if (user != null)
+                {
+                    var quizParticipant = quizParticipants.FirstOrDefault(r => r.UserId == user!.UserId);
+                    if (quizParticipant != null)
+                    {
+                        userPersonalRank = quizParticipant.Rank;
+                        userPersonalScore = quizParticipant.TotalScore;
+                    }
+                }
+            }
+            List<QuizParticipantsDTO> quizParticipantsDTO = quizParticipants.OrderBy(r => r.Rank).Select(r => new QuizParticipantsDTO()
+            {
+                QuizTitle = r.Quiz.Title,
+                Username = _unitOfWork.UserRepository.GetFirstOrDefaultAsync(p => p.UserId == r.UserId)!.Result!.Username,
+                Rank = r.Rank,
+                Score = r.TotalScore,
+                Prize = r.WinningAmount,
+                TotalParticipants = totalParticipants,
+                TotalMarks = r.Quiz.TotalMarks,
+                PersonalRank = userPersonalRank,
+                PrizeMoney = quiz.WinningAmount,
+                AchievedScore = userPersonalScore,
+            }).ToList();
+
+            int recordSize = Int32.Parse(_configuration["LeaderboardRecords:Size"]!);
+            int totalCount = quizParticipants.Count;
+            int totalPage = (int)Math.Ceiling((double)totalCount / recordSize);
+
+            PaginationDTO paginationDTO = new()
+            {
+                TotalCount = totalCount,
+                TotalPages = totalPage,
+                CurrentPage = getUserLeaderboardDTO.CurrentPage,
+                PageSize = 3,
+                RecordSize = recordSize
+            };
+
+            List<QuizParticipantsDTO> sendQuizLeaderboardDTO = quizParticipantsDTO
+            .Skip((getUserLeaderboardDTO.CurrentPage - 1) * recordSize)
+            .Take(recordSize)
+            .ToList();
+
+            UserLeaderboardResponseDTO response = new UserLeaderboardResponseDTO()
+            {
+                Pagination = paginationDTO,
+                QuizParticipants = sendQuizLeaderboardDTO
+            };
+
+            return new()
+            {
+                IsSuccess = true,
+                Message = "Quiz Leaderboard fetched successfully",
+                StatusCode = HttpStatusCode.OK,
+                Data = response
             };
         }
     }

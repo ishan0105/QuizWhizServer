@@ -337,6 +337,7 @@ namespace QuizWhiz.API.Controllers
 
             return await _quizService.GetQuizWinners(quizLink);
         }
+
         [HttpGet("get-coins-lifeline")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
@@ -354,6 +355,63 @@ namespace QuizWhiz.API.Controllers
             }
 
             return await _quizService.GetCoinsAndLifeLineCount(userName);
+        }
+
+        [HttpPost("get-admin-leaderboard")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        public async Task<ResponseDTO> GetAdminLeaderboard([FromBody] GetAdminLeaderboardDTO getAdminLeaderboardDTO)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Something Went Wrong",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+
+            return await _quizService.GetAdminLeaderboard(getAdminLeaderboardDTO);
+        }
+
+        [HttpGet("get-quiz-participants-count")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        public async Task<ResponseDTO> GetQuizParticipantsCount([FromQuery] string quizLink)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Something Went Wrong",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+
+            return await _quizService.GetQuizParticipantsCount(quizLink);
+        }
+
+        [HttpPost("get-user-leaderboard")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        public async Task<ResponseDTO> GetUserLeaderboard([FromBody] GetUserLeaderboardDTO getUserLeaderboardDTO)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Something Went Wrong",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+
+            return await _quizService.GetUserLeaderboard(getUserLeaderboardDTO);
         }
     }
 }

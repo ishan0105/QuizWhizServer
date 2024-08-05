@@ -32,5 +32,7 @@ namespace QuizWhiz.Application.Interfaces
         public Task<ResponseDTO> SetProfilePhoto(ProfileDetailsDTO profileDetailsDTO);
 
         public Task<ResponseDTO> SetRecordSizeAsync(int recordSize);
+
+        public Task<ResponseDTO> SetLeaderboardRecordSizeAsync(int recordSize);
     }
 }
