@@ -417,5 +417,17 @@ namespace QuizWhiz.Application.Services
                 StatusCode = HttpStatusCode.OK
             };
         }
+
+        public async Task<ResponseDTO> SetLeaderboardRecordSizeAsync(int recordSize)
+        {
+            _configuration["LeaderboardRecords:Size"] = recordSize.ToString();
+            return new()
+            {
+                IsSuccess = true,
+                Data = _configuration["LeaderboardRecords:Size"],
+                Message = "Record Size Changed",
+                StatusCode = HttpStatusCode.OK
+            };
+        }
     }
 }
