@@ -245,6 +245,15 @@ namespace QuizWhiz.DataAccess.Migrations
                     b.Property<bool>("IsDisqualified")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsFiftyUsed")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsHeartUsed")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsSkipUsed")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("QuizId")
                         .HasColumnType("integer");
 
