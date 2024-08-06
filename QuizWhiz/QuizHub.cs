@@ -39,19 +39,19 @@ public class QuizHub : Hub
         await Clients.All.SendAsync("ResponseOfUpdateScore", result);
     }
 
-    public async Task RegisterUser(string quizLink, string userName)
+    public async Task RegisterUser(string quizLink, string username)
     {
         _userConnections.AddOrUpdate(
-                userName,
+                username,
                 new List<string> { Context.ConnectionId },
                 (key, existingList) =>
                 {
                     existingList.Add(Context.ConnectionId);
                     return existingList;
                 });
-        _quizService.AddUser(Context.ConnectionId, userName);
-        var result = await _quizService.RegisterUser(quizLink, userName);
-        await Clients.All.SendAsync("RegisterUserResponse", result);
+        _quizService.AddUser(Context.ConnectionId, username);
+        var result = await _quizService.RegisterUser(quizLink, username);
+        await Clients.All.SendAsync($"RegisterUserResponse_{username}", result);
     }
 
     public async Task UserScoreboard(string quizLink, string username)
@@ -60,4 +60,9 @@ public class QuizHub : Hub
         await Clients.All.SendAsync($"ResponseOfUserScoreboard_{username}", result);
     }
 
+    public async Task HeartLifeline(string quizLink, string username)
+    {
+        var result = await _quizService.UnableHeartLifeline(quizLink, username);
+        await Clients.All.SendAsync($"ResponseOfHeartLifeline_{username}", result);
+    }
 }

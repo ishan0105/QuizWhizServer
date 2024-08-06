@@ -1182,6 +1182,7 @@ namespace QuizWhiz.Application.Services
                     StatusCode = HttpStatusCode.BadRequest,
                 };
             }
+
             Quiz? quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(q => q.QuizLink == quizLink);
             if (quiz == null)
             {
@@ -1192,6 +1193,7 @@ namespace QuizWhiz.Application.Services
                     StatusCode = HttpStatusCode.BadRequest,
                 };
             }
+
             QuizParticipants? quizParticipants = await _unitOfWork.QuizParticipantsRepository.GetFirstOrDefaultAsync(qp => qp.QuizId == quiz.QuizId && qp.UserId == user.UserId);
             if (quizParticipants != null)
             {
@@ -1202,20 +1204,34 @@ namespace QuizWhiz.Application.Services
                     StatusCode = HttpStatusCode.BadRequest,
                 };
             }
+
+            UserLifeline? userLifelineSkip = await _unitOfWork.UserLifelineRepository.GetFirstOrDefaultAsync(ul => ul.UserId == user.UserId && ul.LifelineId == 1);
+            UserLifeline? userLifelineFifty = await _unitOfWork.UserLifelineRepository.GetFirstOrDefaultAsync(ul => ul.UserId == user.UserId && ul.LifelineId == 2);
+            UserLifeline? userLifelineHeart = await _unitOfWork.UserLifelineRepository.GetFirstOrDefaultAsync(ul => ul.UserId == user.UserId && ul.LifelineId == 3);
+
+            var isSkipUsed = userLifelineSkip != null && userLifelineSkip.LifelineCount != 0 ? false : true;
+            var isFiftyUsed = userLifelineFifty != null && userLifelineFifty.LifelineCount != 0 ? false : true;
+            var isHeartUsed = userLifelineHeart != null && userLifelineHeart.LifelineCount != 0 ? false : true;
+
             QuizParticipants newUser = new()
             {
                 Quiz = quiz,
                 QuizId = quiz.QuizId,
                 UserId = user.UserId,
-                User = user
+                User = user,
+                IsSkipUsed = isSkipUsed,
+                IsHeartUsed = isHeartUsed,
+                IsFiftyUsed = isFiftyUsed,
             };
             await _unitOfWork.QuizParticipantsRepository.CreateAsync(newUser);
             await _unitOfWork.SaveAsync();
+
             return new()
             {
                 IsSuccess = true,
                 Message = "User Registered For Quiz Successfully",
                 StatusCode = HttpStatusCode.BadRequest,
+                Data = newUser
             };
         }
         public async Task<ResponseDTO> GetDisqualifiedUsers(string quizLink)
@@ -1512,7 +1528,7 @@ namespace QuizWhiz.Application.Services
         }
 
         public async Task<ResponseDTO> GetUserLeaderboard(GetUserLeaderboardDTO getUserLeaderboardDTO)
-       {
+        {
             Quiz? quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(q => q.QuizLink == getUserLeaderboardDTO.QuizLink);
 
             if (quiz == null)
@@ -1591,6 +1607,84 @@ namespace QuizWhiz.Application.Services
                 Message = "Quiz Leaderboard fetched successfully",
                 StatusCode = HttpStatusCode.OK,
                 Data = response
+            };
+        }
+
+        public async Task<ResponseDTO> UnableHeartLifeline(string quizLink, string username)
+        {
+            if (username == null || quizLink == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "User Not Found",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            User? user = await _unitOfWork.UserRepository.GetFirstOrDefaultAsync(r => r.Username == username);
+
+            if (user == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "User Not Found",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            Quiz? quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(u => u.QuizLink == quizLink);
+
+            if (quiz == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Quiz Not Found",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            QuizParticipants? quizParticipent = await _unitOfWork.QuizParticipantsRepository.GetFirstOrDefaultAsync(u => u.UserId == user.UserId && u.QuizId == quiz.QuizId);
+
+            if (quizParticipent == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "User Did Not Participate!",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            if (quizParticipent.IsHeartUsed == true)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Lifeline Used Already!",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            quizParticipent.IsDisqualified = false;
+            quizParticipent.IsHeartUsed = true;
+
+            UserLifeline? userLifelineHeart = await _unitOfWork.UserLifelineRepository.GetFirstOrDefaultAsync(ul => ul.UserId == user.UserId && ul.LifelineId == 3);
+            if (userLifelineHeart != null)
+            {
+                userLifelineHeart.LifelineCount--;
+            }
+
+            await _unitOfWork.SaveAsync();
+
+            return new()
+            {
+                IsSuccess = true,
+                Message = "Data Updated Successfully",
+                StatusCode = HttpStatusCode.OK,
+
             };
         }
     }

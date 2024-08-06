@@ -31,6 +31,12 @@ namespace QuizWhiz.Domain.Entities
 
         public bool IsDisqualified { get; set; } = false;
 
+        public bool IsHeartUsed { get; set; } = false;
+
+        public bool IsSkipUsed { get; set; } = false;
+
+        public bool IsFiftyUsed { get; set; } = false;
+
         [ForeignKey(nameof(QuizId))]
         public required Quiz Quiz { get; set; }
 

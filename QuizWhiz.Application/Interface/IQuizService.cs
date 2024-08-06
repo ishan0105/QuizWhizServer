@@ -80,5 +80,7 @@ namespace QuizWhiz.Application.Interface
         public Task<ResponseDTO> GetQuizParticipantsCount(string quizLink);
 
         public Task<ResponseDTO> GetUserLeaderboard(GetUserLeaderboardDTO getUserLeaderboardDTO);
+
+        public Task<ResponseDTO> UnableHeartLifeline(string quizLink, string username);
     }
 }
