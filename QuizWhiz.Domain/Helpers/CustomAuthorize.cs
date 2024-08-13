@@ -13,16 +13,15 @@ namespace QuizWhiz.Domain.Helpers
 {
     public class CustomAuthorize : AuthorizeAttribute, IAuthorizationFilter
     {
-        private readonly string _role;
-        
+        private readonly string[] _roles;
 
-        public CustomAuthorize(string role)
+        public CustomAuthorize(params string[] roles)
         {
-            _role = role;
+            _roles = roles;
         }
 
         public void OnAuthorization(AuthorizationFilterContext context)
-        {   
+        {
             var token = context.HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last();
             if (!IsTokenValid(token, out var claimsPrincipal))
             {
@@ -34,7 +33,7 @@ namespace QuizWhiz.Domain.Helpers
             context.HttpContext.User = claimsPrincipal;
 
             var userRole = claimsPrincipal.Claims.FirstOrDefault(c => c.Type == "Role")?.Value;
-            if (userRole == null || !_role.Contains(userRole))
+            if (userRole == null || !_roles.Contains(userRole))
             {
                 context.Result = new ForbidResult();
             }

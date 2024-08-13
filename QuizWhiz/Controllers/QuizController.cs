@@ -51,8 +51,8 @@ namespace QuizWhiz.API.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(500)]
-        //[CustomAuthorize("Admin")]
-            
+        [CustomAuthorize("Admin", "Contestant")]
+
         public async Task<ResponseDTO> GetQuizzesFilter([FromBody] GetQuizFilterDTO getQuizFilterDTO)
         {
             if (!ModelState.IsValid)
@@ -71,6 +71,7 @@ namespace QuizWhiz.API.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(500)]
+        [CustomAuthorize("Admin")]
         public async Task<ResponseDTO> AddQuizQuestions([FromBody] QuizQuestionsDTO quizQuestionsDTO)
         {
             if (!ModelState.IsValid)
@@ -361,6 +362,7 @@ namespace QuizWhiz.API.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(500)]
+        [CustomAuthorize("Admin")]
         public async Task<ResponseDTO> GetAdminLeaderboard([FromBody] GetAdminLeaderboardDTO getAdminLeaderboardDTO)
         {
             if (!ModelState.IsValid)
@@ -399,6 +401,7 @@ namespace QuizWhiz.API.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(500)]
+        [CustomAuthorize("Contestant")]
         public async Task<ResponseDTO> GetUserLeaderboard([FromBody] GetUserLeaderboardDTO getUserLeaderboardDTO)
         {
             if (!ModelState.IsValid)
@@ -412,6 +415,24 @@ namespace QuizWhiz.API.Controllers
             }
 
             return await _quizService.GetUserLeaderboard(getUserLeaderboardDTO);
+        }
+        [HttpPost("buy-lifeline")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        public async Task<ResponseDTO> BuyLifeline([FromBody] BuyLifelineDTO buyLifelineDTO)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Something went wrong",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+
+            }
+            return await _quizService.BuyLifeline(buyLifelineDTO);
         }
     }
 }

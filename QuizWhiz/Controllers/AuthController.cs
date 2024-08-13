@@ -163,6 +163,7 @@ namespace QuizWhiz.API.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(500)]
+        [CustomAuthorize("Admin", "Contestant")]
         public async Task<ResponseDTO> GetProfileDetails([FromQuery] string username)
         {
             if (!ModelState.IsValid)

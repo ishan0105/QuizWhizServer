@@ -900,15 +900,15 @@ namespace QuizWhiz.Application.Services
             };
         }
 
-        public async Task<ResponseDTO> UpdateScore(string QuizLink, string userName, int QuestionId, List<int> userAnswers)
+        public async Task<ResponseDTO> UpdateScore(string QuizLink, string userName, int QuestionId, List<int> userAnswers, bool isSkipQuestionUsed)
         {
             if (QuestionId == 0)
             {
                 return new()
                 {
                     IsSuccess = false,
-                    Message = "Questions not found!!",
-                    StatusCode = HttpStatusCode.OK,
+                    Message = "Question not found!!",
+                    StatusCode = HttpStatusCode.BadRequest,
                 };
             }
             List<Option> Options = await _unitOfWork.OptionRepository.GetWhereAsync(o => o.QuestionId == QuestionId && o.IsAnswer == true);
@@ -934,6 +934,7 @@ namespace QuizWhiz.Application.Services
                     ++idx;
                 }
             }
+
             Quiz? quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(q => q.QuizLink == QuizLink);
             if (quiz == null)
             {
@@ -944,6 +945,8 @@ namespace QuizWhiz.Application.Services
                     StatusCode = HttpStatusCode.BadRequest,
                 };
             }
+
+
             User? user = await _unitOfWork.UserRepository.GetFirstOrDefaultAsync(u => u.Username == userName);
             if (user == null)
             {
@@ -951,7 +954,7 @@ namespace QuizWhiz.Application.Services
                 {
                     IsSuccess = false,
                     Message = "User not found",
-                    StatusCode = HttpStatusCode.OK,
+                    StatusCode = HttpStatusCode.BadRequest,
                 };
             }
 
@@ -963,37 +966,88 @@ namespace QuizWhiz.Application.Services
                 {
                     IsSuccess = false,
                     Message = "Something Went Wrong",
-                    StatusCode = HttpStatusCode.OK,
+                    StatusCode = HttpStatusCode.BadRequest,
                 };
             }
+
             if (quizParticipants.IsDisqualified)
             {
                 return new()
                 {
                     IsSuccess = false,
                     Message = "User has been disqualified",
-                    StatusCode = HttpStatusCode.OK,
+                    StatusCode = HttpStatusCode.BadRequest,
                 };
             }
-            if (IsCorrect)
+
+            if (IsCorrect && !isSkipQuestionUsed)
             {
                 quizParticipants.CorrectQuestions = quizParticipants.CorrectQuestions + 1;
                 quizParticipants.TotalScore = quizParticipants.TotalScore + 1;
+                UserCoins? userCoins = await _unitOfWork.UserCoinsRepository.GetFirstOrDefaultAsync(r => r.UserId == user.UserId);
+                if (quiz.DifficultyId == 1)
+                {
+                    userCoins!.NoOfCoins += 10;
+                }
+                else if (quiz.DifficultyId == 2)
+                {
+                    userCoins!.NoOfCoins += 15;
+                }
+                else if (quiz.DifficultyId == 3)
+                {
+                    userCoins!.NoOfCoins += 20;
+                }
             }
             else
             {
-                quizParticipants.IsDisqualified = true;
+                if (!isSkipQuestionUsed)
+                {
+                    quizParticipants.IsDisqualified = true;
+                }
+                else
+                {
+                    UserLifeline? userLifeline = await _unitOfWork.UserLifelineRepository.GetFirstOrDefaultAsync(r => r.UserId == user.UserId && r.LifelineId == 1);
+                    if (userLifeline == null || userLifeline.LifelineCount <= 0)
+                    {
+                        quizParticipants.IsDisqualified = true;
+                        return new()
+                        {
+                            IsSuccess = false,
+                            Message = "User don't have SkipQuestionLifeline",
+                            StatusCode = HttpStatusCode.BadRequest,
+                        };
+                    }
+
+                    userLifeline.LifelineCount -= 1;
+                    quizParticipants.IsSkipUsed = true;
+                    quizParticipants.CorrectQuestions = quizParticipants.CorrectQuestions + 1;
+                    quizParticipants.TotalScore = quizParticipants.TotalScore + 1;
+                    UserCoins? userCoins = await _unitOfWork.UserCoinsRepository.GetFirstOrDefaultAsync(r => r.UserId == user.UserId);
+                    if (quiz.DifficultyId == 1)
+                    {
+                        userCoins!.NoOfCoins += 10;
+                    }
+                    else if (quiz.DifficultyId == 2)
+                    {
+                        userCoins!.NoOfCoins += 15;
+                    }
+                    else if (quiz.DifficultyId == 3)
+                    {
+                        userCoins!.NoOfCoins += 20;
+                    }
+                }
             }
             await _unitOfWork.SaveAsync();
 
             return new()
             {
                 IsSuccess = true,
-                Message = "Correct Ans",
+                Message = "Correct Answer",
                 StatusCode = HttpStatusCode.OK,
                 Data = IsCorrect
             };
         }
+
         public async Task<ResponseDTO> GetQuiz(string quizLink)
         {
             if (quizLink == null || quizLink == "")
@@ -1290,7 +1344,7 @@ namespace QuizWhiz.Application.Services
                     StatusCode = HttpStatusCode.BadRequest,
                 };
             }
-            User? user = await _unitOfWork.UserRepository.GetFirstOrDefaultAsync(r=>r.Username==userName);
+            User? user = await _unitOfWork.UserRepository.GetFirstOrDefaultAsync(r => r.Username == userName);
 
             if (user == null)
             {
@@ -1302,7 +1356,7 @@ namespace QuizWhiz.Application.Services
                 };
             }
             var coins = await _unitOfWork.UserCoinsRepository.GetFirstOrDefaultAsync(r => r.UserId == user.UserId);
-            if(coins == null)
+            if (coins == null)
             {
                 return new()
                 {
@@ -1312,7 +1366,7 @@ namespace QuizWhiz.Application.Services
                 };
             }
             var UserLifelines = await _unitOfWork.UserLifelineRepository.GetWhereAsync(r => r.UserId == user.UserId);
-            if(UserLifelines == null)
+            if (UserLifelines == null)
             {
                 return new()
                 {
@@ -1323,18 +1377,20 @@ namespace QuizWhiz.Application.Services
             }
             var UserLifelinesCounts = UserLifelines.Select(e => new UserLifeLineDTO
             {
-                LifelineId=e.LifelineId,
-                LifelineCount=e.LifelineCount,
-            }).ToList();
+                LifelineId = e.LifelineId,
+                LifelineCount = e.LifelineCount,
+            }).OrderBy(e => e.LifelineId).ToList();
 
             var LifeLines = await _unitOfWork.LifelineRepository.GetAll();
             CoinsAndLifelineCountDTO coinsAndLifelineCountDTO = new CoinsAndLifelineCountDTO()
             {
-                CoinsCount=coins.NoOfCoins,
-                UserLifelines= UserLifelinesCounts,
-                Lifelines= LifeLines
+                CoinsCount = coins.NoOfCoins,
+                UserLifelines = UserLifelinesCounts,
+                Lifelines = LifeLines
             };
-            return new() {
+
+            return new()
+            {
                 IsSuccess = true,
                 Message = "Data Fetched Successfully",
                 StatusCode = HttpStatusCode.OK,
@@ -1685,6 +1741,193 @@ namespace QuizWhiz.Application.Services
                 Message = "Data Updated Successfully",
                 StatusCode = HttpStatusCode.OK,
 
+            };
+        }
+
+        public async Task<ResponseDTO> FiftyLifeline(string quizLink, string userName, int QuestionId)
+        {
+            User? user = await _unitOfWork.UserRepository.GetFirstOrDefaultAsync(r => r.Username == userName && r.IsDeleted == false);
+
+            if (user == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "User Not Found",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            UserLifeline? userLifeline = await _unitOfWork.UserLifelineRepository.GetFirstOrDefaultAsync(r => r.UserId == user.UserId && r.LifelineId == 2);
+
+            if (userLifeline == null || userLifeline.LifelineCount <= 0)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "User Don't Have Any 50-50 Lifeline.",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            Question? question = await _unitOfWork.QuestionRepository.GetFirstOrDefaultAsync(r => r.QuestionId == QuestionId && r.IsDeleted == false);
+
+            if (question == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Question Not Found",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            if (question.QuestionTypeId != 1)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "This Lifeline Is Only Applicable To MCQS",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            Quiz? quiz = await _unitOfWork.QuizRepository.GetFirstOrDefaultAsync(r => r.QuizLink == quizLink && r.IsDeleted == false);
+            if (quiz == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Quiz Not Found",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            QuizParticipants? quizParticipant = await _unitOfWork.QuizParticipantsRepository.GetFirstOrDefaultAsync(r => r.QuizId == quiz.QuizId && r.UserId == user.UserId);
+            if (quizParticipant == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "User is not registered in Quiz",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            if (quizParticipant.IsDisqualified)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "User has been disqualified",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            if (quizParticipant.IsFiftyUsed == true)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Lifeline Used Already!!",
+                    StatusCode = HttpStatusCode.BadRequest,
+
+                };
+            }
+
+            quizParticipant.IsFiftyUsed = true;
+            userLifeline.LifelineCount -= 1;
+            List<Option> options = await _unitOfWork.OptionRepository.GetWhereAsync(r => r.QuestionId == QuestionId && r.IsAnswer == false);
+            if (options == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Options Not Found",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            options = options.Take(2).ToList();
+            await _unitOfWork.SaveAsync();
+
+            return new()
+            {
+                IsSuccess = true,
+                Message = "Data Fetched Successfully",
+                StatusCode = HttpStatusCode.OK,
+                Data = options
+            };
+        }
+
+        public async Task<ResponseDTO> BuyLifeline(BuyLifelineDTO buyLifelineDTO)
+        {
+            User? user = await _unitOfWork.UserRepository.GetFirstOrDefaultAsync(u => u.Username == buyLifelineDTO.UserName);
+            if (user == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "User not found",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+
+            UserCoins? userCoins = await _unitOfWork.UserCoinsRepository.GetFirstOrDefaultAsync(u => u.UserId == user.UserId);
+            if (userCoins == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "User coins not found",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+            Lifeline? lifeline = await _unitOfWork.LifelineRepository.GetFirstOrDefaultAsync(r => r.LifelineId == buyLifelineDTO.LifelineId);
+            if (lifeline == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "LifelineId Is Not Exist",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+            int CoinsRequired = lifeline.Value;
+
+            if (CoinsRequired > userCoins.NoOfCoins)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "Enough coins are not available",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+
+
+            UserLifeline? userLifeline = await _unitOfWork.UserLifelineRepository.GetFirstOrDefaultAsync(u => u.UserId == user.UserId && u.LifelineId == buyLifelineDTO.LifelineId);
+
+            if (userLifeline == null)
+            {
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "User or LifelineId Not Exist",
+                    StatusCode = HttpStatusCode.BadRequest
+                };
+            }
+
+            userLifeline.LifelineCount += 1;
+            userCoins.NoOfCoins -= lifeline.Value;
+
+            await _unitOfWork.SaveAsync();
+
+            return new()
+            {
+                IsSuccess = true,
+                Message = "Lifelines bought successfully",
+                StatusCode = HttpStatusCode.OK
             };
         }
     }

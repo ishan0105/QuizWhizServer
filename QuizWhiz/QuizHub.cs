@@ -33,9 +33,9 @@ public class QuizHub : Hub
         _quizService.RemoveUser(Context.ConnectionId);
         return base.OnDisconnectedAsync(exception);
     }
-    public async Task UpdateScore(string quizLink, string userName, int QuestionId, List<int> userAnswers)
+    public async Task UpdateScore(string quizLink, string userName, int QuestionId, List<int> userAnswers, bool isSkipQuestionUsed)
     {
-        var result = await _quizService.UpdateScore(quizLink, userName, QuestionId, userAnswers);
+        var result = await _quizService.UpdateScore(quizLink, userName, QuestionId, userAnswers, isSkipQuestionUsed);
         await Clients.All.SendAsync("ResponseOfUpdateScore", result);
     }
 
@@ -64,5 +64,11 @@ public class QuizHub : Hub
     {
         var result = await _quizService.UnableHeartLifeline(quizLink, username);
         await Clients.All.SendAsync($"ResponseOfHeartLifeline_{username}", result);
+    }
+
+    public async Task FiftyLifeline(string quizLink, string username, int QuestionId)
+    {
+        var result = await _quizService.FiftyLifeline(quizLink, username, QuestionId);
+        await Clients.All.SendAsync($"FetchFiftyOptions_{username}", result);
     }
 }
