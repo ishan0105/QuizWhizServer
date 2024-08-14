@@ -48,13 +48,18 @@ public class BackgroundWorkerService : BackgroundService
                         quiz.StatusId = 3;
                     }
 
-                   /* DateTime completedDateTime = quiz.ScheduledDate.AddSeconds(quiz.TotalQuestion*20+1);
-
-                    if (DateTime.Now >= completedDateTime && quiz.StatusId == 3)
+                    if (DateTime.Now >= quiz.ScheduledDate && quiz.StatusId == 1)
                     {
-                        quiz.StatusId = 4;
-                        await quizService.UpdateLeaderBoard(quiz.QuizId);
-                    }*/
+                        quiz.IsDeleted = true;
+                    }
+
+                    /* DateTime completedDateTime = quiz.ScheduledDate.AddSeconds(quiz.TotalQuestion*20+1);
+
+                     if (DateTime.Now >= completedDateTime && quiz.StatusId == 3)
+                     {
+                         quiz.StatusId = 4;
+                         await quizService.UpdateLeaderBoard(quiz.QuizId);
+                     }*/
                 }
 
                 await _unitOfWork.SaveAsync();

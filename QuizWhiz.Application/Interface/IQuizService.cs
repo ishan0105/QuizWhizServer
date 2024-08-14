@@ -51,7 +51,7 @@ namespace QuizWhiz.Application.Interface
 
         public Task<ResponseDTO> GetQuizWinners(string quizLink);
 
-        public Task<ResponseDTO> UpdateScore(string quizLink, string userName, int QuestionId, List<int> userAnswers);
+        public Task<ResponseDTO> UpdateScore(string QuizLink, string userName, int QuestionId, List<int> userAnswers, bool isSkipQuestionUsed);
 
         public Task<ResponseDTO> RegisterUser(string quizLink, string userName);
 
@@ -80,5 +80,11 @@ namespace QuizWhiz.Application.Interface
         public Task<ResponseDTO> GetQuizParticipantsCount(string quizLink);
 
         public Task<ResponseDTO> GetUserLeaderboard(GetUserLeaderboardDTO getUserLeaderboardDTO);
+
+        public Task<ResponseDTO> UnableHeartLifeline(string quizLink, string username);
+
+        public Task<ResponseDTO> FiftyLifeline(string quizLink, string userName, int QuestionId);
+
+        public Task<ResponseDTO> BuyLifeline(BuyLifelineDTO buyLifelineDTO);
     }
 }

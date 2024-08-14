@@ -59,7 +59,7 @@ namespace QuizWhiz.Application.Services
                 return new()
                 {
                     IsSuccess = false,
-                    Message = "User not found",
+                    Message = "User Does Not Exists!!",
                     StatusCode = HttpStatusCode.BadRequest
                 };
             }
@@ -112,7 +112,7 @@ namespace QuizWhiz.Application.Services
                 return new()
                 {
                     IsSuccess = false,
-                    Message = "Invalid Credentials",
+                    Message = "Invalid Email or Password!!",
                     StatusCode = HttpStatusCode.BadRequest
                 };
             }
@@ -128,12 +128,12 @@ namespace QuizWhiz.Application.Services
 
         public async Task<ResponseDTO> SignUpUserAsync(SignUpUserDTO signUpUserDTO)
         {
-            if (await _unitOfWork.UserRepository.GetAnyAsync(u => u.Email == signUpUserDTO.Email))
+            if (await _unitOfWork.UserRepository.GetAnyAsync(u => u.Email.ToLower() == signUpUserDTO.Email.ToLower()))
             {
                 return new()
                 {
                     IsSuccess = false,
-                    Message = "Email is already registered.",
+                    Message = "Email Already Registered!!",
                     StatusCode = HttpStatusCode.BadRequest
                 };
             }
@@ -152,10 +152,31 @@ namespace QuizWhiz.Application.Services
             await _unitOfWork.UserRepository.CreateAsync(user);
             await _unitOfWork.SaveAsync();
 
+            for( int i = 1; i <= 3; i++)
+            {
+                UserLifeline userLifeline = new UserLifeline
+                {
+                    UserId = user.UserId,
+                    LifelineId = i,
+                    LifelineCount = 0,
+                };
+                await _unitOfWork.UserLifelineRepository.CreateAsync(userLifeline);
+                await _unitOfWork.SaveAsync();
+            }
+
+            UserCoins userCoins = new UserCoins
+            {
+                UserId = user.UserId,
+                NoOfCoins = 500
+            };
+
+            await _unitOfWork.UserCoinsRepository.CreateAsync(userCoins);
+            await _unitOfWork.SaveAsync();
+
             return new()
             {
                 IsSuccess = true,
-                Message = "User registered successfully.",
+                Message = "User Registered Successfully.",
                 StatusCode = HttpStatusCode.OK
             };
         }
@@ -169,7 +190,7 @@ namespace QuizWhiz.Application.Services
                 return new()
                 {
                     IsSuccess = false,
-                    Message = "Username already exists!!",
+                    Message = "Username Already Exists!!",
                     StatusCode = HttpStatusCode.BadRequest
                 };
             }
@@ -178,7 +199,7 @@ namespace QuizWhiz.Application.Services
                 return new()
                 {
                     IsSuccess = true,
-                    Message = "Username does not exists!!",
+                    Message = "Username Does Not Exists!!",
                     StatusCode = HttpStatusCode.OK
                 };
             }
@@ -192,7 +213,7 @@ namespace QuizWhiz.Application.Services
                 return new()
                 {
                     IsSuccess = false,
-                    Message = "User not found",
+                    Message = "User Does Not Exists!!",
                     StatusCode = HttpStatusCode.BadRequest
                 };
             }
@@ -203,7 +224,7 @@ namespace QuizWhiz.Application.Services
 
             await _unitOfWork.SaveAsync();
 
-            var clientUrl = "http://localhost:5173";
+            var clientUrl = "http://192.168.1.20:8001";
             var resetLink = $"{clientUrl}/reset-password/{token}";
             var subject = "Reset Password";
             var body = $"Click here to reset your password: {resetLink}";
@@ -212,7 +233,7 @@ namespace QuizWhiz.Application.Services
             return new()
             {
                 IsSuccess = true,
-                Message = "Reset Link has been sent.",
+                Message = "Reset Link Sent Successfully!!",
                 StatusCode = HttpStatusCode.OK
             };
         }
@@ -227,7 +248,7 @@ namespace QuizWhiz.Application.Services
                 return new()
                 {
                     IsSuccess = false,
-                    Message = "Invalid link",
+                    Message = "Invalid Link",
                     StatusCode = HttpStatusCode.BadRequest
                 };
             }
@@ -239,7 +260,7 @@ namespace QuizWhiz.Application.Services
                 return new()
                 {
                     IsSuccess = false,
-                    Message = "Invalid or expired link",
+                    Message = "Invalid or Expired Link",
                     StatusCode = HttpStatusCode.BadRequest
                 };
             }
@@ -289,7 +310,7 @@ namespace QuizWhiz.Application.Services
             return new()
             {
                 IsSuccess = true,
-                Message = "User updated successfully.",
+                Message = "User Updated Successfully.",
                 StatusCode = HttpStatusCode.OK
             };
         }
@@ -302,7 +323,7 @@ namespace QuizWhiz.Application.Services
                 return new()
                 {
                     IsSuccess = false,
-                    Message = "User does not Exists!!",
+                    Message = "User Does Not Exists!!",
                     StatusCode = HttpStatusCode.BadRequest
                 };
             }
@@ -333,7 +354,7 @@ namespace QuizWhiz.Application.Services
                 return new()
                 {
                     IsSuccess = false,
-                    Message = "User does not Exists!!",
+                    Message = "User Does Not Exists!!",
                     StatusCode = HttpStatusCode.BadRequest
                 };
             }
@@ -348,7 +369,7 @@ namespace QuizWhiz.Application.Services
             return new()
             {
                 IsSuccess = true,
-                Message = "User updated successfully.",
+                Message = "User Updated Successfully.",
                 StatusCode = HttpStatusCode.OK
             };
         }
@@ -361,7 +382,7 @@ namespace QuizWhiz.Application.Services
                 return new()
                 {
                     IsSuccess = false,
-                    Message = "User does not Exists!!",
+                    Message = "User Does Not Exists!!",
                     StatusCode = HttpStatusCode.BadRequest
                 };
             }
@@ -370,7 +391,7 @@ namespace QuizWhiz.Application.Services
             var filePath = "";
             if (file != null && file.Length > 0)
             {
-                var directory = "D:\\QuizWhizClient\\quizwhiz-client\\public\\ProfilePhoto";
+                var directory = "D:\\QuizWhizClient\\quizwhiz-client\\dist\\ProfilePhoto";
                 var folderPath = Path.Combine(directory, profileDetailsDTO.Username.ToString());
                 var extension = Path.GetExtension(file.FileName);
                 if(extension != ".jpg")
@@ -401,7 +422,7 @@ namespace QuizWhiz.Application.Services
             return new()
             {
                 IsSuccess = true,
-                Message = "User updated successfully.",
+                Message = "User Updated Successfully.",
                 StatusCode = HttpStatusCode.OK
             };
         }
